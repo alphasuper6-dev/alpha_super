@@ -13,7 +13,8 @@ const String kToken = 'YOUR_GITHUB_READ_WRITE_TOKEN';
 
 class HomeScreen extends StatefulWidget {
   final String devId;
-  const HomeScreen({super.key, required this.devId});
+  final String activeBranch;
+  const HomeScreen({super.key, required this.devId, required this.activeBranch});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -53,6 +54,14 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => syncing = false);
     }
+  }
+
+  bool _isStageUnlocked(String stageName) {
+    if (widget.activeBranch == 'ALL') return true;
+    if (widget.activeBranch == 'T9' && stageName.contains('التاسع')) return true;
+    if (widget.activeBranch == 'SC' && stageName.contains('العلمي')) return true;
+    if (widget.activeBranch == 'LT' && stageName.contains('الأدبي')) return true;
+    return false;
   }
 
   void _adminLogin() {
@@ -99,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.vpn_key, color: Colors.teal),
-              title: const Text("مولّد الأكواد الفوري"),
+              title: const Text("مولّد الأكواد حسب الفرع"),
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const Directionality(textDirection: TextDirection.rtl, child: CodeGeneratorScreen())));
@@ -110,14 +119,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
+  final raw = p.getStringList('saved_questions') ?? [];
+                        raw.removeAt(i);
+                        await p.setStringList('saved_questions', raw);
+                        _load();
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     final stages = syrianCurriculum2026.keys.toList();
     final colors = [Colors.teal, Colors.indigo, Colors.deepPurple];
     return Scaffold(
       appBar: AppBar(
-        title: GestureDetector(onLongPress: _adminLogin, child: const Text("Alpha Super")),
+        title: GestureDetector(onLongPress: _adminLogin, child: const Text("Alpha Super 2026")),
         actions: [
           IconButton(
             icon: const Icon(Icons.bookmarks),
@@ -135,15 +156,26 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, i) {
           final st = stages[i];
           final col = colors[i % colors.length];
+          final unlocked = _isStageUnlocked(st);
           return Card(
-            color: col.shade50,
+            color: unlocked ? col.shade50 : Colors.grey.shade200,
             margin: const EdgeInsets.only(bottom: 14),
             child: ListTile(
               contentPadding: const EdgeInsets.all(18),
-              leading: CircleAvatar(backgroundColor: col, child: const Icon(Icons.school, color: Colors.white)),
-              title: Text(st, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: col.shade900)),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: SubjectsScreen(stageName: st, subjectsMap: syrianCurriculum2026[st]!, allQs: allQs)))),
+              leading: CircleAvatar(
+                backgroundColor: unlocked ? col : Colors.grey,
+                child: Icon(unlocked ? Icons.school : Icons.lock, color: Colors.white),
+              ),
+              title: Text(st, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: unlocked ? col.shade900 : Colors.grey.shade700)),
+              subtitle: Text(unlocked ? "مفعّل - اضغط لعرض المواد" : "مقفل - يتطلب كود هذا الفرع"),
+              trailing: Icon(unlocked ? Icons.arrow_forward_ios : Icons.lock_outline),
+              onTap: () {
+                if (!unlocked) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("كودك الحالي لا يشمل هذا الفرع!")));
+                  return;
+                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: SubjectsScreen(stageName: st, subjectsMap: syrianCurriculum2026[st]!, allQs: allQs))));
+              },
             ),
           );
         },
@@ -160,7 +192,7 @@ class SubjectsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subs = subjectsMap.keys.where((s) => !s.contains("الوطنية")).toList();
+    final subs = subjectsMap.keys.toList();
     return Scaffold(
       appBar: AppBar(title: Text(stageName)),
       body: GridView.builder(
@@ -256,7 +288,7 @@ class _SavedQuestionsScreenState extends State<SavedQuestionsScreen> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () async {
-                                                final p = await SharedPreferences.getInstance();
+                        final p = await SharedPreferences.getInstance();
                         final raw = p.getStringList('saved_questions') ?? [];
                         raw.removeAt(i);
                         await p.setStringList('saved_questions', raw);
