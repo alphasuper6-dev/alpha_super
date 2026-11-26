@@ -13,7 +13,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final String owner = 'alphasuper6-dev';
   final String repo = 'alpha_super';
   final String filePath = 'questions.json';
-  final String githubToken = 'ghp_XAM8wkhrQXE1qA5' + 'AL2tA4nVyaxnrUQ0rgbVZ';
+  final String githubToken = 'ghp_XmrIVpgB39JUfxJDf+Cwr0N17DAmPb01YS14V' ;
 
   
   String selectedStage = 'تاسع';
