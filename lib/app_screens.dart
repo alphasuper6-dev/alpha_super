@@ -256,4 +256,18 @@ class _SavedQuestionsScreenState extends State<SavedQuestionsScreen> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () async {
-                        
+                                                final p = await SharedPreferences.getInstance();
+                        final raw = p.getStringList('saved_questions') ?? [];
+                        raw.removeAt(i);
+                        await p.setStringList('saved_questions', raw);
+                        _load();
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
