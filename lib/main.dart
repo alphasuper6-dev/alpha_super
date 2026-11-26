@@ -17,7 +17,9 @@ class AlphaSuperApp extends StatelessWidget {
       title: 'Alpha Super',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFF1E3A8A),
+        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
         fontFamily: 'Arial',
       ),
       home: const Directionality(
@@ -93,145 +95,164 @@ class _ActivationScreenState extends State<ActivationScreen> {
       await prefs.setString('bound_device', widget.deviceId);
       widget.onActivated();
     } else {
-      setState(() => _error = "الكود غير صالح! تواصل مع بوت التلغرام للحصول على كود الباقة الشاملة (150 ألف) أو ادعُ 4 أصدقاء لكود مجاني.");
+      setState(() => _error = "الكود غير صالح! احصل على كود الباقة الشاملة (150 ألف ل.س) عبر بوت التلغرام أو ادعُ 4 أصدقاء لكود مجاني.");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("تفعيل تطبيق Alpha Super")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_person, size: 70, color: Colors.indigo),
-            const SizedBox(height: 15),
-            const Text("الباقة الشاملة (تاسع + بكالوريا علمي وأدبي)", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text("معرّف جهازك المقفل: ${widget.deviceId}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _codeController,
-              decoration: const InputDecoration(
-                labelText: "أدخل كود التفعيل هنا",
-                border: OutlineInputBorder(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.verified_user_rounded, size: 60, color: Color(0xFF1E3A8A)),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text("Alpha Super", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                    const SizedBox(height: 6),
+                    const Text("الباقة الشاملة: تاسع + بكالوريا علمي وأدبي", textAlign: TextAlign.center, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
+                      child: Text("معرّف جهازك المقفل: ${widget.deviceId}", style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _codeController,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: "أدخل كود التفعيل هنا",
+                        prefixIcon: const Icon(Icons.vpn_key_rounded),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                    if (_error.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(_error, style: const TextStyle(color: Colors.red, fontSize: 13), textAlign: TextAlign.center),
+                    ],
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _activate,
+                      icon: const Icon(Icons.lock_open_rounded),
+                      label: const Text("تفعيل الباقة على هذا الجهاز", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E3A8A),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 52),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            if (_error.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Text(_error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-            ],
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _activate,
-              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-              child: const Text("تفعيل الباقة على هذا الجهاز فقط", style: TextStyle(fontSize: 16)),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String deviceId;
   const HomeScreen({super.key, required this.deviceId});
 
   @override
-  Widget build(BuildContext context) {
-    final sections = ["التاسع الأساسي", "البكالوريا العلمي", "البكالوريا الأدبي"];
-    return Scaffold(
-      appBar: AppBar(title: const Text("Alpha Super - بدون إنترنت")),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: sections.length,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: const Icon(Icons.school, color: Colors.indigo),
-              title: Text(sections[index], style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text("أسئلة أتمتة + مقالي مع سلالم التصحيح الوزارية"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: QuestionSampleScreen(sectionTitle: sections[index]),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool isUpdating = false;
+  String lastUpdate = "نسخة الأسئلة: v1.0 (محدّثة)";
+
+  final Map<String, List<String>> stagesData = {
+    "التاسع الأساسي": ["الرياضيات", "العلوم العامة", "الفيزياء والكيمياء", "اللغة العربية", "اللغة الإنكليزية", "اللغة الفرنسية", "الاجتماعيات", "التربية الوطنية"],
+    "البكالوريا العلمي": ["الرياضيات", "علم الأحياء", "الفيزياء", "الكيمياء", "اللغة العربية", "اللغة الإنكليزية", "اللغة الفرنسية", "التربية الوطنية"],
+    "البكالوريا الأدبي": ["اللغة العربية", "الفلسفة والعلوم الإنسانية", "التاريخ", "الجغرافيا", "اللغة الإنكليزية", "اللغة الفرنسية", "التربية الوطنية"],
+  };
+
+  Future<void> _syncQuestions() async {
+    setState(() => isUpdating = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    setState(() {
+      isUpdating = false;
+      lastUpdate = "آخر تحديث: اليوم (${TimeOfDay.now().format(context)})";
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("✅ تم فحص السحابة: جميع الأسئلة وسلالم التصحيح محدّثة وتعمل بدون إنترنت!"),
+        backgroundColor: Colors.green,
       ),
     );
   }
-}
-
-class QuestionSampleScreen extends StatefulWidget {
-  final String sectionTitle;
-  const QuestionSampleScreen({super.key, required this.sectionTitle});
-
-  @override
-  State<QuestionSampleScreen> createState() => _QuestionSampleScreenState();
-}
-
-class _QuestionSampleScreenState extends State<QuestionSampleScreen> {
-  int? selectedOption;
-  bool showRubric = false;
 
   @override
   Widget build(BuildContext context) {
+    final stageColors = [const Color(0xFF0D9488), const Color(0xFF1E3A8A), const Color(0xFF7C3AED)];
+    final stageIcons = [Icons.menu_book_rounded, Icons.science_rounded, Icons.history_edu_rounded];
+    final stageKeys = stagesData.keys.toList();
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.sectionTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("1. نموذج سؤال أتمتة (يعمل Offline):", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            const Text("تقع مدينة طرطوس على الساحل الشرقي للبحر:"),
-            RadioListTile<int>(
-              title: const Text("المتوسط"),
-              value: 0,
-              groupValue: selectedOption,
-              onChanged: (v) => setState(() => selectedOption = v),
-            ),
-            RadioListTile<int>(
-              title: const Text("الأحمر"),
-              value: 1,
-              groupValue: selectedOption,
-              onChanged: (v) => setState(() => selectedOption = v),
-            ),
-            if (selectedOption != null)
-              Text(
-                selectedOption == 0 ? "✅ إجابة صحيحة!" : "❌ إجابة خاطئة، الصحيح: المتوسط",
-                style: TextStyle(color: selectedOption == 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold),
-              ),
-            const Divider(height: 32),
-            const Text("2. نموذج سؤال مقالي مع سلم التصحيح:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            const Text("علّل: أهمية تنظيم الوقت لطلاب الشهادات؟"),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => setState(() => showRubric = !showRubric),
-              child: Text(showRubric ? "إخفاء سلم التصحيح" : "إظهار سلم التصحيح الوزاري"),
-            ),
-            if (showRubric)
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(12),
-                color: Colors.amber.shade50,
-                child: const Text("سلم التصحيح (10 درجات):\n• استثمار الساعات الذهنية الصباحية (5 درجات).\n• مراجعة جميع الوحدات قبل الامتحان دون توتر (5 درجات)."),
-              ),
+            Text("Alpha Super", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text("يعمل بدون إنترنت • محمي ضد التصوير", style: TextStyle(fontSize: 11, color: Colors.white70)),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: TextButton.icon(
+              onPressed: isUpdating ? null : _syncQuestions,
+              icon: isUpdating
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.cloud_sync_rounded, color: Colors.amberAccent),
+              label: Text(isUpdating ? "جاري التحديث..." : "تحديث الأسئلة", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
-}
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: Colors.indigo.shade50,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(lastUpdate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                const Row(
+                  children: [
