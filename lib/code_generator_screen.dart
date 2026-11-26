@@ -12,10 +12,6 @@ class CodeGeneratorScreen extends StatefulWidget {
 }
 
 class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
-  final String owner = 'alphasuper6-dev';
-  final String repo = 'alpha_super';
-  final String filePath = 'codes.json';
-
   final TextEditingController tokenController = TextEditingController();
   String selectedBranch = 'T9';
   final TextEditingController countController = TextEditingController(text: '10');
@@ -74,9 +70,8 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
     try {
       final url = Uri.parse('https://github.com');
       final headers = {
-        'Authorization': 'Bearer $githubToken',
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
+        'Authorization': 'token $githubToken',
+        'User-Agent': 'AlphaSuperApp',
       };
 
       final getRes = await http.get(url, headers: headers);
