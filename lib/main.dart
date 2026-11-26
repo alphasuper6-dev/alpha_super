@@ -95,7 +95,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
       await prefs.setString('bound_device', widget.deviceId);
       widget.onActivated();
     } else {
-      setState(() => _error = "الكود غير صالح! احصل على كود الباقة الشاملة (150 ألف ل.س) عبر بوت التلغرام أو ادعُ 4 أصدقاء لكود مجاني.");
+      setState(() => _error = "الكود غير صالح! احصل على كود الباقة الشاملة (150 ألف ل.س) عبر بوت التلغرام @AlphaSuperSy_bot أو ادعُ 4 أصدقاء لكود مجاني.");
     }
   }
 
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : const Icon(Icons.cloud_sync_rounded, color: Colors.amberAccent),
               label: Text(isUpdating ? "جاري التحديث..." : "تحديث الأسئلة", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.15),
+                backgroundColor: Colors.white24,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
             ),
@@ -256,3 +256,4 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(lastUpdate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                 const Row(
                   children: [
+                    
