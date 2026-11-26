@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stages = syrianCurriculum.keys.toList();
+    final stages = syrianCurriculum2026.keys.toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Alpha Super 2026'),
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: syrianCurriculum[stage]!, allQs: allQs),
+                    builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: syrianCurriculum2026[stage]!, allQs: allQs),
                   ),
                 );
               },
