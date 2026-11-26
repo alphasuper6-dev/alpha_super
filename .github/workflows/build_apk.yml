@@ -1,9 +1,8 @@
 name: Build Alpha Super APK
-
 on:
-  push:
-    branches: [ main, master ]
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -11,42 +10,44 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.6'
           channel: 'stable'
-          cache: true
-
-      - name: Upgrade Android Gradle safely
+      - name: Initialize Flutter App if missing
         run: |
-          cp android/app/src/main/AndroidManifest.xml /tmp/AndroidManifest.xml || true
-          flutter create .
-          cp /tmp/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+          if [ ! -d "android" ]; then
+            flutter create . --project-name alpha_super
+          fi
+      - name: Enable Internet & Block Screenshots
+        run: |
+          sed -i 's/<application/<uses-permission android:name="android.permission.INTERNET"\/>\n    <application/' android/app/src/main/AndroidManifest.xml
+          MAIN_KT=$(find android/app/src/main/kotlin -name "MainActivity.kt")
+          PKG_LINE=$(grep "^package " "$MAIN_KT")
+          cat << EOF > "$MAIN_KT"
+          $PKG_LINE
 
-      - name: Get dependencies
-        run: flutter pub get
+          import android.os.Bundle
+          import android.view.WindowManager
+          import io.flutter.embedding.android.FlutterActivity
 
-      - name: Build APK
-        run: flutter build apk --release
-
+          class MainActivity: FlutterActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+              }
+          }
+          EOF
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alpha-super-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
       - name: Publish Direct APK Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Alpha Super v1.0.${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
