@@ -1,3 +1,57 @@
 {
-  "ALPHA2026": { "deviceId": "", "status": "unused", "branch": "ALL" }
+  "ALPHA2026": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "ALL"
+  },
+  "T9-QAFK-TM46": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-S5CX-ML3Y": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-7L47-6XEQ": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-7LBF-A3VZ": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-ZW2H-25AR": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-A23K-RQ2U": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-7DPV-74AZ": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-DTFM-UJNK": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-XYQH-268C": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  },
+  "T9-PTNX-8CK5": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
+  }
 }
