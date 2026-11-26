@@ -9,8 +9,7 @@ import 'study_views.dart';
 
 const String kOwner = 'alphasuper6-dev';
 const String kRepo = 'alpha_super';
-const String kToken = 'ghp_XmrIVpgB39JUfxJDf+Cwr0N17DAmPb01YS14V' ;
-
+const String kToken = '';
 
 class HomeScreen extends StatefulWidget {
   final String devId;
@@ -28,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadOffline();
+    _syncCloud();
   }
 
   Future<void> _loadOffline() async {
@@ -40,18 +40,25 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => syncing = true);
     try {
       final res = await http.get(
-        Uri.parse('https://github.com'),
-        headers: {'Authorization': 'Bearer $kToken', 'Accept': 'application/vnd.github.v3+json'},
+        Uri.parse('https://raw.githubusercontent.com/' + 'alphasuper6-dev/alpha_super/main/questions.json'),
       );
       if (res.statusCode == 200) {
-        final raw = utf8.decode(base64Decode(jsonDecode(res.body)['content'].toString().replaceAll('\n', '')));
+        final raw = utf8.decode(res.bodyBytes);
         final p = await SharedPreferences.getInstance();
         await p.setString('offline_questions', raw);
         setState(() => allQs = jsonDecode(raw));
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تم تحديث الأسئلة بنجاح!"), backgroundColor: Colors.green));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم تحديث الأسئلة بنجاح!'), backgroundColor: Colors.green),
+          );
+        }
       }
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تعذر التحديث السحابي"), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تعذر التحديث السحابي'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => syncing = false);
     }
@@ -60,8 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isStageUnlocked(String stageName) {
     if (widget.activeBranch == 'ALL') return true;
     if (widget.activeBranch == 'T9' && stageName.contains('التاسع')) return true;
-    if (widget.activeBranch == 'SC' && stageName.contains('العلمي')) return true;
-    if (widget.activeBranch == 'LT' && stageName.contains('الأدبي')) return true;
+    if ((widget.activeBranch == 'SC' || widget.activeBranch == 'SCI') && stageName.contains('العلمي')) return true;
+    if ((widget.activeBranch == 'LT' || widget.activeBranch == 'LIT') && stageName.contains('الأدبي')) return true;
     return false;
   }
 
@@ -72,18 +79,18 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text("دخول الإدارة"),
-          content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(labelText: "كلمة السر")),
+          title: const Text('دخول الإدارة'),
+          content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(hintText: 'كلمة المرور')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("إلغاء")),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
             ElevatedButton(
               onPressed: () {
-                if (c.text.trim() == "KHDR2026") {
+                if (c.text.trim() == 'KHDR2026') {
                   Navigator.pop(ctx);
                   _adminMenu();
                 }
               },
-              child: const Text("دخول"),
+              child: const Text('دخول'),
             ),
           ],
         ),
@@ -96,26 +103,29 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.quiz, color: Colors.indigo),
-              title: const Text("أداة إضافة الأسئلة"),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const Directionality(textDirection: TextDirection.rtl, child: AdminPanelScreen())));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.vpn_key, color: Colors.teal),
-              title: const Text("مولّد الأكواد حسب الفرع"),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const Directionality(textDirection: TextDirection.rtl, child: CodeGeneratorScreen())));
-              },
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.add_circle, color: Colors.indigo),
+                title: const Text('إضافة أسئلة جديدة للسحابة'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.vpn_key, color: Colors.green),
+                title: const Text('مولّد الأكواد السحابي'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CodeGeneratorScreen()));
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -123,48 +133,56 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stages = syrianCurriculum2026.keys.toList();
-    final colors = [Colors.teal, Colors.indigo, Colors.deepPurple];
-    return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(onLongPress: _adminLogin, child: const Text("Alpha Super 2026")),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmarks),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const Directionality(textDirection: TextDirection.rtl, child: SavedQuestionsScreen()))),
-          ),
-          syncing
-              ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
-              : IconButton(icon: const Icon(Icons.cloud_download), onPressed: _syncCloud),
-          IconButton(icon: const Icon(Icons.admin_panel_settings), onPressed: _adminLogin),
-        ],
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: stages.length,
-        itemBuilder: (context, i) {
-          final st = stages[i];
-          final col = colors[i % colors.length];
-          final unlocked = _isStageUnlocked(st);
-          return Card(
-            color: unlocked ? col.shade50 : Colors.grey.shade200,
-            margin: const EdgeInsets.only(bottom: 14),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(18),
-              leading: CircleAvatar(backgroundColor: unlocked ? col : Colors.grey, child: Icon(unlocked ? Icons.school : Icons.lock, color: Colors.white)),
-              title: Text(st, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: unlocked ? col.shade900 : Colors.grey.shade700)),
-              subtitle: Text(unlocked ? "مفعّل - اضغط لعرض المواد" : "مقفل - يتطلب كود هذا الفرع"),
-              trailing: Icon(unlocked ? Icons.arrow_forward_ios : Icons.lock_outline),
-              onTap: () {
-                if (!unlocked) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("كودك الحالي لا يشمل هذا الفرع!")));
-                  return;
-                }
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: SubjectsScreen(stageName: st, subjectsMap: syrianCurriculum2026[st]!, allQs: allQs))));
-              },
+    final stages = kCurriculum.keys.toList();
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Alpha Super 2026'),
+          actions: [
+            IconButton(
+              icon: syncing
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.cloud_download),
+              onPressed: syncing ? null : _syncCloud,
             ),
-          );
-        },
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              onPressed: _adminLogin,
+            ),
+          ],
+        ),
+        body: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: stages.length,
+          itemBuilder: (_, i) {
+            final stage = stages[i];
+            final unlocked = _isStageUnlocked(stage);
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                leading: Icon(unlocked ? Icons.lock_open : Icons.lock, color: unlocked ? Colors.green : Colors.grey),
+                title: Text(stage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                subtitle: Text(unlocked ? 'مفعّل بالكامل' : 'مقفل (يتطلب كود هذا الفرع)'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  if (!unlocked) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('هذا الفرع غير مشمول في كود التفعيل الخاص بك'), backgroundColor: Colors.orange),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SubjectsScreen(stageName: stage, subjects: kCurriculum[stage]!, allQs: allQs),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
