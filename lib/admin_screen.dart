@@ -1,117 +1,121 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'code_generator_screen.dart';
 
-class AdminPanelScreen extends StatefulWidget {
-  const AdminPanelScreen({super.key});
-
+class AdminScreen extends StatefulWidget {
+  const AdminScreen({super.key});
   @override
-  State<AdminPanelScreen> createState() => _AdminPanelScreenState();
+  State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  final String owner = 'alphasuper6-dev';
-  final String repo = 'alpha_super';
-  final String filePath = 'questions.json';
-  final String githubToken = 'ghp_XmrIVpgB39JUfxJDf+Cwr0N17DAmPb01YS14V' ;
-
-  
-  String selectedStage = 'تاسع';
-  String selectedSection = 'أتمتة'; // أتمتة | تحريري | دورات
-  final TextEditingController subjectController = TextEditingController();
-  final TextEditingController unitController = TextEditingController();
-  final TextEditingController examYearController = TextEditingController(); // لأسئلة الدورات 2018-2026
+class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController questionController = TextEditingController();
-  final TextEditingController opt1Controller = TextEditingController();
-  final TextEditingController opt2Controller = TextEditingController();
-  final TextEditingController opt3Controller = TextEditingController();
-  final TextEditingController opt4Controller = TextEditingController();
-  final TextEditingController answerController = TextEditingController();
-  final TextEditingController explanationController = TextEditingController(); // شرح السؤال
+  final List<TextEditingController> optionControllers = List.generate(4, (_) => TextEditingController());
+  final TextEditingController explanationController = TextEditingController();
 
+  String selectedBranch = 'T9';
+  String selectedSubject = 'الرياضيات';
+  String selectedUnit = 'الوحدة الأولى';
+  int correctIndex = 0;
   bool isLoading = false;
 
-  Future<void> publishQuestion() async {
-    if (subjectController.text.isEmpty ||
-        unitController.text.isEmpty ||
-        questionController.text.isEmpty ||
-        answerController.text.isEmpty) {
+  final Map<String, List<String>> branchSubjects = {
+    'T9': ['الرياضيات', 'الفيزياء والكيمياء', 'علم الأحياء', 'اللغة العربية', 'اللغة الإنكليزية', 'اللغة الفرنسية', 'الاجتماعيات', 'التربية الدينية'],
+    'SCI': ['الرياضيات', 'الفيزياء', 'الكيمياء', 'علم الأحياء', 'اللغة العربية', 'اللغة الإنكليزية', 'اللغة الفرنسية', 'التربية الوطنية', 'التربية الدينية'],
+    'LIT': ['اللغة العربية', 'التاريخ', 'الجغرافيا', 'الفلسفة', 'اللغة الإنكليزية', 'اللغة الفرنسية', 'التربية الوطنية', 'التربية الدينية'],
+  };
+
+  Future<void> _uploadQuestion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final githubToken = (prefs.getString('gh_admin_token') ?? '').trim();
+
+    if (githubToken.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة')),
+        const SnackBar(content: Text('افتح مولّد الأكواد أولاً واحفظ مفتاح GitHub Token هناك'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    if (questionController.text.trim().isEmpty || optionControllers.any((c) => c.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الرجاء كتابة نص السؤال والخيارات الأربعة كاملة'), backgroundColor: Colors.red),
       );
       return;
     }
 
     setState(() => isLoading = true);
-    final String apiUrl = 'https://github.com';
 
     try {
-      final getResponse = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $githubToken',
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      );
+      final url = Uri.parse('https://api.github.com/repos/' + 'alphasuper6-dev/alpha_super/contents/questions.json');
+      final headers = {
+        'Authorization': 'token $githubToken',
+        'User-Agent': 'AlphaSuperApp',
+      };
 
-      final fileData = jsonDecode(getResponse.body);
-      final String sha = fileData['sha'];
-      final String currentJson = utf8.decode(base64Decode(fileData['content'].toString().replaceAll('\n', '')));
-      List<dynamic> questionsList = jsonDecode(currentJson);
+      final getRes = await http.get(url, headers: headers);
+      List<dynamic> questionsList = [];
+      String? sha;
+
+      if (getRes.statusCode == 200) {
+        final data = jsonDecode(getRes.body);
+        sha = data['sha'];
+        String rawBase64 = (data['content'] as String).replaceAll('\n', '').replaceAll('\r', '').trim();
+        if (rawBase64.isNotEmpty) {
+          String decodedStr = utf8.decode(base64Decode(rawBase64)).trim();
+          if (decodedStr.startsWith('[')) {
+            questionsList = jsonDecode(decodedStr);
+          }
+        }
+      } else if (getRes.statusCode != 404) {
+        throw Exception('GitHub Error (${getRes.statusCode}): ${getRes.body}');
+      }
 
       questionsList.add({
-        "stage": selectedStage,
-        "subject": subjectController.text.trim(),
-        "unit": unitController.text.trim(),
-        "section": selectedSection, // أتمتة / تحريري / دورات
-        "year": selectedSection == 'دورات' ? examYearController.text.trim() : "",
-        "question": questionController.text.trim(),
-        "options": selectedSection == 'أتمتة'
-            ? [
-                opt1Controller.text.trim(),
-                opt2Controller.text.trim(),
-                opt3Controller.text.trim(),
-                opt4Controller.text.trim(),
-              ]
-            : [],
-        "answer": answerController.text.trim(),
-        "explanation": explanationController.text.trim(),
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'branch': selectedBranch,
+        'subject': selectedSubject,
+        'unit': selectedUnit,
+        'question': questionController.text.trim(),
+        'options': optionControllers.map((c) => c.text.trim()).toList(),
+        'correctIndex': correctIndex,
+        'explanation': explanationController.text.trim(),
       });
 
-      String updatedBase64 = base64Encode(utf8.encode(const JsonEncoder.withIndent('  ').convert(questionsList)));
+      String updatedJson = const JsonEncoder.withIndent('  ').convert(questionsList);
+      String encodedContent = base64Encode(utf8.encode(updatedJson));
 
-      final putResponse = await http.put(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $githubToken',
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'message': 'إضافة سؤال جديد (${subjectController.text})',
-          'content': updatedBase64,
-          'sha': sha,
-        }),
-      );
+      final putBody = <String, dynamic>{
+        'message': 'Add question to $selectedSubject - $selectedUnit',
+        'content': encodedContent,
+      };
+      if (sha != null) {
+        putBody['sha'] = sha;
+      }
 
-      if (putResponse.statusCode == 200 || putResponse.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم نشر السؤال بنجاح!'), backgroundColor: Colors.green),
-        );
+      final putRes = await http.put(url, headers: headers, body: jsonEncode(putBody));
+
+      if (putRes.statusCode == 200 || putRes.statusCode == 201) {
         questionController.clear();
-        opt1Controller.clear();
-        opt2Controller.clear();
-        opt3Controller.clear();
-        opt4Controller.clear();
-        answerController.clear();
+        for (var c in optionControllers) {
+          c.clear();
+        }
         explanationController.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم رفع السؤال للسحابة بنجاح!'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        throw Exception('فشل الرفع (${putRes.statusCode}): ${putRes.body}');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 6)),
+        );
+      }
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -119,50 +123,107 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final subjects = branchSubjects[selectedBranch] ?? ['الرياضيات'];
+    if (!subjects.contains(selectedSubject)) {
+      selectedSubject = subjects.first;
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('أداة توليد الأسئلة (للإدارة)')),
+      appBar: AppBar(
+        title: const Text('لوحة الإدارة - إضافة الأسئلة'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.vpn_key),
+            tooltip: 'مولّد الأكواد',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodeGeneratorScreen())),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              value: selectedStage,
-              decoration: const InputDecoration(labelText: 'المرحلة'),
-              items: ['تاسع', 'بكالوريا علمي', 'بكالوريا أدبي']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (val) => setState(() => selectedStage = val!),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodeGeneratorScreen())),
+              icon: const Icon(Icons.vpn_key),
+              label: const Text('فتح مولّد الأكواد السحابي'),
             ),
-            TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'المادة (مثلاً: العلوم، الرياضيات)')),
-            TextField(controller: unitController, decoration: const InputDecoration(labelText: 'الدرس / الوحدة')),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: selectedSection,
-              decoration: const InputDecoration(labelText: 'تبويب الدرس (وجه الصفحة)'),
-              items: ['أتمتة', 'تحريري', 'دورات']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (val) => setState(() => selectedSection = val!),
+              value: selectedBranch,
+              decoration: const InputDecoration(labelText: 'الفرع الدراسي', border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'T9', child: Text('التاسع الأساسي (T9)')),
+                DropdownMenuItem(value: 'SCI', child: Text('البكالوريا العلمي (SCI)')),
+                DropdownMenuItem(value: 'LIT', child: Text('البكالوريا الأدبي (LIT)')),
+              ],
+              onChanged: (val) => setState(() {
+                selectedBranch = val!;
+                selectedSubject = branchSubjects[selectedBranch]!.first;
+              }),
             ),
-            if (selectedSection == 'دورات')
-              TextField(controller: examYearController, decoration: const InputDecoration(labelText: 'سنة الدورة (من 2018 إلى 2026)')),
-            TextField(controller: questionController, maxLines: 3, decoration: const InputDecoration(labelText: 'نص السؤال')),
-            if (selectedSection == 'أتمتة') ...[
-              TextField(controller: opt1Controller, decoration: const InputDecoration(labelText: 'الخيار 1')),
-              TextField(controller: opt2Controller, decoration: const InputDecoration(labelText: 'الخيار 2')),
-              TextField(controller: opt3Controller, decoration: const InputDecoration(labelText: 'الخيار 3')),
-              TextField(controller: opt4Controller, decoration: const InputDecoration(labelText: 'الخيار 4')),
-            ],
-            TextField(controller: answerController, maxLines: 2, decoration: const InputDecoration(labelText: 'الإجابة الصحيحة / سلم التصحيح')),
-            TextField(controller: explanationController, maxLines: 3, decoration: const InputDecoration(labelText: 'شرح السؤال (يظهر عند كشف الإجابة)')),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton.icon(
-                    onPressed: publishQuestion,
-                    icon: const Icon(Icons.send),
-                    label: const Text('نشر السؤال للسحابة'),
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: selectedSubject,
+              decoration: const InputDecoration(labelText: 'المادة', border: OutlineInputBorder()),
+              items: subjects.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+              onChanged: (val) => setState(() => selectedSubject = val!),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: selectedUnit,
+              decoration: const InputDecoration(labelText: 'الوحدة / القسم', border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'الوحدة الأولى', child: Text('الوحدة الأولى')),
+                DropdownMenuItem(value: 'الوحدة الثانية', child: Text('الوحدة الثانية')),
+                DropdownMenuItem(value: 'الوحدة الثالثة', child: Text('الوحدة الثالثة')),
+                DropdownMenuItem(value: 'الوحدة الرابعة', child: Text('الوحدة الرابعة')),
+                DropdownMenuItem(value: 'الوحدة الخامسة', child: Text('الوحدة الخامسة')),
+                DropdownMenuItem(value: 'الوحدة السادسة', child: Text('الوحدة السادسة')),
+                DropdownMenuItem(value: 'نماذج امتحانية شاملة', child: Text('نماذج امتحانية شاملة')),
+              ],
+              onChanged: (val) => setState(() => selectedUnit = val!),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: questionController,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'نص السؤال', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            ...List.generate(4, (i) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Radio<int>(
+                    value: i,
+                    groupValue: correctIndex,
+                    onChanged: (val) => setState(() => correctIndex = val!),
                   ),
+                  Expanded(
+                    child: TextField(
+                      controller: optionControllers[i],
+                      decoration: InputDecoration(labelText: 'الخيار ${i + 1}', border: const OutlineInputBorder()),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 8),
+            TextField(
+              controller: explanationController,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'شرح الإجابة الصحيحة (اختياري)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: isLoading ? null : _uploadQuestion,
+              icon: isLoading
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.cloud_upload),
+              label: Text(isLoading ? 'جاري الرفع للسحابة...' : 'رفع السؤال للسحابة'),
+            ),
           ],
         ),
       ),
