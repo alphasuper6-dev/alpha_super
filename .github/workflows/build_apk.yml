@@ -1,50 +1,43 @@
 name: Build Alpha Super APK
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
 
-permissions:
-  contents: write
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Initialize Flutter App if missing
-        run: |
-          if [ ! -d "android" ]; then
-            flutter create . --project-name alpha_super
-          fi
-      - name: Enable Screenshot Protection
-        run: |
-          MAIN_KT=$(find android/app/src/main/kotlin -name "MainActivity.kt")
-          cat << 'EOF' > "$MAIN_KT"
-          package com.example.alpha_super
-          import android.os.Bundle
-          import android.view.WindowManager
-          import io.flutter.embedding.android.FlutterActivity
 
-          class MainActivity: FlutterActivity() {
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-              }
-          }
-          EOF
-      - run: flutter pub get
-      - run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          name: alpha-super-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
       - name: Publish Direct APK Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
+          tag_name: v1.0.${{ github.run_number }}
+          name: Alpha Super v1.0.${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
