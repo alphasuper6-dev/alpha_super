@@ -68,7 +68,8 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
     });
 
     try {
-      final url = Uri.parse('https://github.com');
+      final url = Uri.parse('https://api.github.com/repos/' + 'alphasuper6-dev/alpha_super/contents/codes.json');
+      
       final headers = {
         'Authorization': 'token $githubToken',
         'User-Agent': 'AlphaSuperApp',
