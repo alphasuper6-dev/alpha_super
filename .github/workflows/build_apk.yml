@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,4 +42,9 @@ jobs:
         with:
           name: alpha-super-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Publish Direct APK Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          files: build/app/outputs/flutter-apk/app-release.apk
           
