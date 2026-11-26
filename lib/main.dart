@@ -10,7 +10,6 @@ import 'admin_screen.dart';
 import 'code_generator_screen.dart';
 import 'lesson_study_screen.dart';
 
-// إعدادات مستودعك السحابي (ضع التوكن الخاص بك هنا لقفل الأكواد والتحديث)
 const String kGithubOwner = 'alphasuper6-dev';
 const String kGithubRepo = 'alpha_super';
 const String kGithubToken = 'YOUR_GITHUB_READ_WRITE_TOKEN';
@@ -80,7 +79,6 @@ class _SplashOrHomeState extends State<SplashOrHome> {
   }
 }
 
-// 1. شاشة التفعيل مع قفل الكود بجهاز واحد (Device ID Lock)
 class ActivationScreen extends StatefulWidget {
   final String devId;
   final VoidCallback onDone;
@@ -100,7 +98,6 @@ class _ActivationScreenState extends State<ActivationScreen> {
     final code = _c.text.trim().toUpperCase();
     if (code.isEmpty) return;
 
-    // كود المدير التجريبي
     if (code == "ALPHA2026") {
       final p = await SharedPreferences.getInstance();
       await p.setBool('activated', true);
@@ -126,7 +123,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
       );
 
       if (getRes.statusCode != 200) {
-        throw Exception("تعذر الاتصال بالسيرفر، تأكد من الإنترنت");
+        throw Exception("تعذر الاتصال بالسيرفر");
       }
 
       final fileData = jsonDecode(getRes.body);
@@ -148,20 +145,19 @@ class _ActivationScreenState extends State<ActivationScreen> {
         savedDevice = codeInfo['device_id']?.toString() ?? "";
       }
 
-      // التحقق من قفل الجهاز الواحد
       if (savedDevice.isNotEmpty && savedDevice != widget.devId) {
         setState(() => _err = "عذراً! هذا الكود مستخدم ومقفل على جهاز آخر.");
         return;
       }
 
-      // ربط الكود بهذا الجهاز حصراً ورفعه للسحابة
       codesMap[code] = {
         "status": "used",
         "device_id": widget.devId,
       };
 
-      String updatedBase64 =
-          base64Encode(utf8.encode(const JsonEncoder.withIndent('  ').convert(codesMap)));
+      String updatedBase64 = base64Encode(
+        utf8.encode(const JsonEncoder.withIndent('  ').convert(codesMap)),
+      );
 
       await http.put(
         Uri.parse(apiUrl),
@@ -242,7 +238,6 @@ class _ActivationScreenState extends State<ActivationScreen> {
   }
 }
 
-// 2. الشاشة الرئيسية للمراحل + التحديث السحابي + الأسئلة المحفوظة + لوحة الإدارة
 class HomeScreen extends StatefulWidget {
   final String devId;
   const HomeScreen({super.key, required this.devId});
@@ -337,4 +332,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: const Text("إلغاء"),
             ),
-            
+            ElevatedButton(
+              onPressed: () {
+                if (passCtrl.text.trim() == "KHDR2026") {
+                  Navigator.pop(ctx);
+                  _showAdminMenu();
+                } else {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    
