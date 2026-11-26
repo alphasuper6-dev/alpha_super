@@ -31,7 +31,7 @@ class SplashOrHome extends StatefulWidget {
 }
 
 class _SplashOrHomeState extends State<SplashOrHome> {
-  bool? ok;
+  String? activeBranch;
   String devId = "...";
 
   @override
@@ -46,20 +46,22 @@ class _SplashOrHomeState extends State<SplashOrHome> {
     if (Platform.isAndroid) id = (await DeviceInfoPlugin().androidInfo).id;
     setState(() {
       devId = id;
-      ok = p.getBool('activated') ?? false;
+      activeBranch = p.getString('active_branch') ?? "";
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (ok == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    return ok! ? HomeScreen(devId: devId) : ActivationScreen(devId: devId, onDone: () => setState(() => ok = true));
+    if (activeBranch == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return activeBranch!.isNotEmpty
+        ? HomeScreen(devId: devId, activeBranch: activeBranch!)
+        : ActivationScreen(devId: devId, onDone: (branch) => setState(() => activeBranch = branch));
   }
 }
 
 class ActivationScreen extends StatefulWidget {
   final String devId;
-  final VoidCallback onDone;
+  final Function(String) onDone;
   const ActivationScreen({super.key, required this.devId, required this.onDone});
   @override
   State<ActivationScreen> createState() => _ActivationScreenState();
@@ -73,17 +75,20 @@ class _ActivationScreenState extends State<ActivationScreen> {
   Future<void> _verify() async {
     final code = _c.text.trim().toUpperCase();
     if (code.isEmpty) return;
+
     if (code == "ALPHA2026") {
       final p = await SharedPreferences.getInstance();
-      await p.setBool('activated', true);
-      widget.onDone();
+      await p.setString('active_branch', 'ALL');
+      widget.onDone('ALL');
       return;
     }
+
     setState(() {
       _loading = true;
       _err = "";
     });
     const url = 'https://github.com';
+
     try {
       final res = await http.get(
         Uri.parse(url),
@@ -94,17 +99,25 @@ class _ActivationScreenState extends State<ActivationScreen> {
       Map<String, dynamic> codes = jsonDecode(
         utf8.decode(base64Decode(data['content'].toString().replaceAll('\n', ''))),
       );
+
       if (!codes.containsKey(code)) {
         setState(() => _err = "كود غير صحيح! احصل على كودك من @AlphaSuperSy_bot");
         return;
       }
+
       final info = codes[code];
       final savedDev = (info is Map) ? (info['device_id']?.toString() ?? "") : "";
       if (savedDev.isNotEmpty && savedDev != widget.devId) {
         setState(() => _err = "هذا الكود مستخدم ومقفل على جهاز آخر!");
         return;
       }
-      codes[code] = {"status": "used", "device_id": widget.devId};
+
+      String branch = "ALL";
+      if (code.startsWith("T9-")) branch = "T9";
+      else if (code.startsWith("SC-")) branch = "SC";
+      else if (code.startsWith("LT-")) branch = "LT";
+
+      codes[code] = {"status": "used", "device_id": widget.devId, "branch": branch};
       await http.put(
         Uri.parse(url),
         headers: {
@@ -113,14 +126,15 @@ class _ActivationScreenState extends State<ActivationScreen> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'message': 'تفعيل كود',
+          'message': 'تفعيل كود $branch',
           'content': base64Encode(utf8.encode(jsonEncode(codes))),
           'sha': sha,
         }),
       );
+
       final p = await SharedPreferences.getInstance();
-      await p.setBool('activated', true);
-      widget.onDone();
+      await p.setString('active_branch', branch);
+      widget.onDone(branch);
     } catch (_) {
       setState(() => _err = "تأكد من الاتصال بالإنترنت وحاول مجدداً");
     } finally {
@@ -139,11 +153,18 @@ class _ActivationScreenState extends State<ActivationScreen> {
           children: [
             const Icon(Icons.verified_user, size: 64, color: Colors.indigo),
             const SizedBox(height: 12),
-            const Text("الباقة الشاملة: تاسع + بكالوريا علمي وأدبي", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text("منصة Alpha Super التعليمية - سوريا", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             Text("معرّف جهازك: ${widget.devId}", style: const TextStyle(color: Colors.grey, fontSize: 12)),
             const SizedBox(height: 20),
-            TextField(controller: _c, decoration: const InputDecoration(labelText: "أدخل كود التفعيل", border: OutlineInputBorder())),
-            if (_err.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_err, style: const TextStyle(color: Colors.red))),
+            TextField(
+              controller: _c,
+              decoration: const InputDecoration(labelText: "أدخل كود التفعيل (T9 / SC / LT)", border: OutlineInputBorder()),
+            ),
+            if (_err.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_err, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              ),
             const SizedBox(height: 16),
             _loading
                 ? const CircularProgressIndicator()
