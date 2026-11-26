@@ -4,13 +4,13 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'code_generator_screen.dart';
 
-class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+class AdminPanelScreen extends StatefulWidget {
+  const AdminPanelScreen({super.key});
   @override
-  State<AdminScreen> createState() => _AdminScreenState();
+  State<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminScreenState extends State<AdminScreen> {
+class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final TextEditingController questionController = TextEditingController();
   final List<TextEditingController> optionControllers = List.generate(4, (_) => TextEditingController());
   final TextEditingController explanationController = TextEditingController();
