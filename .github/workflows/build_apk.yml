@@ -14,7 +14,7 @@ jobs:
           channel: 'stable'
       - name: Initialize Flutter App if missing
         run: |
-          if [ ! -f "pubspec.yaml" ]; then
+          if [ ! -d "android" ]; then
             flutter create . --project-name alpha_super
           fi
       - run: flutter pub get
