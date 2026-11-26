@@ -252,4 +252,14 @@ class _QuizScreenState extends State<QuizScreen> {
           RadioListTile<int>(title: const Text("الأحمر"), value: 1, groupValue: ans, onChanged: (v) => setState(() => ans = v)),
           if (ans != null) Text(ans == 0 ? "✅ صحيح!" : "❌ خطأ، الصحيح: المتوسط", style: TextStyle(color: ans == 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
           const Divider(height: 30),
-          
+                    const Text("2. سؤال مقالي مع سلم التصحيح:", style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text("علّل: أهمية حل النماذج الوزارية؟"),
+          const SizedBox(height: 8),
+          ElevatedButton(onPressed: () => setState(() => rubric = !rubric), child: Text(rubric ? "إخفاء السلم" : "إظهار سلم التصحيح")),
+          if (rubric) Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), color: Colors.amber.shade50, child: const Text("سلم التصحيح: التدرب على الوقت (5) + فهم توزيع العلامات (5).")),
+        ],
+      ),
+    );
+  }
+}
+
