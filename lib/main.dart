@@ -1,212 +1,264 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'curriculum.dart';
 
-class AdminPanelScreen extends StatefulWidget {
-  const AdminPanelScreen({super.key});
-
-  @override
-  State<AdminPanelScreen> createState() => _AdminPanelScreenState();
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const AlphaSuperApp());
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  // إعدادات مستودعك (ضع التوكن الخاص بك هنا بصلاحية قراءة وكتابة Contents: Read & Write)
-  final String owner = 'alphasuper6-dev';
-  final String repo = 'alpha_super';
-  final String filePath = 'questions.json'; // تأكد أنه يطابق مكان الملف في مستودعك
-  final String githubToken = 'YOUR_GITHUB_READ_WRITE_TOKEN';
+class AlphaSuperApp extends StatelessWidget {
+  const AlphaSuperApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Alpha Super',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+      home: const Directionality(textDirection: TextDirection.rtl, child: SplashOrHome()),
+    );
+  }
+}
 
-  String selectedStage = 'تاسع';
-  String selectedType = 'mcq';
-  final TextEditingController subjectController = TextEditingController();
-  final TextEditingController unitController = TextEditingController();
-  final TextEditingController questionController = TextEditingController();
-  final TextEditingController opt1Controller = TextEditingController();
-  final TextEditingController opt2Controller = TextEditingController();
-  final TextEditingController opt3Controller = TextEditingController();
-  final TextEditingController opt4Controller = TextEditingController();
-  final TextEditingController answerController = TextEditingController();
+class SplashOrHome extends StatefulWidget {
+  const SplashOrHome({super.key});
+  @override
+  State<SplashOrHome> createState() => _SplashOrHomeState();
+}
 
-  bool isLoading = false;
+class _SplashOrHomeState extends State<SplashOrHome> {
+  bool? ok;
+  String devId = "...";
 
-  Future<void> publishQuestionToGitHub() async {
-    if (subjectController.text.isEmpty ||
-        unitController.text.isEmpty ||
-        questionController.text.isEmpty ||
-        answerController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة')),
-      );
-      return;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-    setState(() => isLoading = true);
+  Future<void> _load() async {
+    final p = await SharedPreferences.getInstance();
+    String id = "device";
+    if (Platform.isAndroid) id = (await DeviceInfoPlugin().androidInfo).id;
+    setState(() {
+      devId = id;
+      ok = p.getBool('activated') ?? false;
+    });
+  }
 
-    final String apiUrl =
-        'https://github.com';
+  @override
+  Widget build(BuildContext context) {
+    if (ok == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return ok! ? HomeScreen(devId: devId) : ActivationScreen(devId: devId, onDone: () => setState(() => ok = true));
+  }
+}
 
-    try {
-      // 1. جلب الملف الحالي من GitHub للحصول على المحتوى القديم ورمز التحديث (sha)
-      final getResponse = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $githubToken',
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      );
+class ActivationScreen extends StatefulWidget {
+  final String devId;
+  final VoidCallback onDone;
+  const ActivationScreen({super.key, required this.devId, required this.onDone});
+  @override
+  State<ActivationScreen> createState() => _ActivationScreenState();
+}
 
-      if (getResponse.statusCode != 200) {
-        throw Exception('فشل الاتصال بالمستودع: ${getResponse.statusCode}');
-      }
+class _ActivationScreenState extends State<ActivationScreen> {
+  final _c = TextEditingController();
+  String _err = "";
 
-      final fileData = jsonDecode(getResponse.body);
-      final String sha = fileData['sha'];
-      final String contentBase64 =
-          fileData['content'].toString().replaceAll('\n', '');
-      final String currentJsonString =
-          utf8.decode(base64Decode(contentBase64));
-
-      // 2. تحويل النص إلى قائمة وإضافة السؤال الجديد
-      List<dynamic> questionsList = jsonDecode(currentJsonString);
-
-      Map<String, dynamic> newQuestion = {
-        "stage": selectedStage,
-        "subject": subjectController.text.trim(),
-        "unit": unitController.text.trim(),
-        "type": selectedType,
-        "question": questionController.text.trim(),
-        "options": selectedType == 'mcq'
-            ? [
-                opt1Controller.text.trim(),
-                opt2Controller.text.trim(),
-                opt3Controller.text.trim(),
-                opt4Controller.text.trim(),
-              ]
-            : [],
-        "answer": answerController.text.trim(),
-      };
-
-      questionsList.add(newQuestion);
-
-      // 3. تشفير القائمة المحدثة وإرسالها إلى GitHub
-      String updatedJsonString =
-          const JsonEncoder.withIndent('  ').convert(questionsList);
-      String updatedBase64 = base64Encode(utf8.encode(updatedJsonString));
-
-      final putResponse = await http.put(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $githubToken',
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'message': 'إضافة سؤال جديد من التطبيق (${subjectController.text})',
-          'content': updatedBase64,
-          'sha': sha,
-        }),
-      );
-
-      if (putResponse.statusCode == 200 || putResponse.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم نشر السؤال على السحابة بنجاح!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        questionController.clear();
-        opt1Controller.clear();
-        opt2Controller.clear();
-        opt3Controller.clear();
-        opt4Controller.clear();
-        answerController.clear();
-      } else {
-        throw Exception('فشل الرفع: ${putResponse.statusCode}');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ: $e'), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => isLoading = false);
+  Future<void> _verify() async {
+    final code = _c.text.trim().toUpperCase();
+    if (code == "ALPHA2026" || code.startsWith("AS-")) {
+      final p = await SharedPreferences.getInstance();
+      await p.setBool('activated', true);
+      widget.onDone();
+    } else {
+      setState(() => _err = "كود غير صالح! احصل على كودك من @AlphaSuperSy_bot");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('لوحة الإدارة - إضافة سؤال')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      appBar: AppBar(title: const Text("تفعيل Alpha Super")),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            DropdownButtonFormField<String>(
-              value: selectedStage,
-              decoration: const InputDecoration(labelText: 'المرحلة الدراسية'),
-              items: ['تاسع', 'بكالوريا علمي', 'بكالوريا أدبي']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (val) => setState(() => selectedStage = val!),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: subjectController,
-              decoration: const InputDecoration(labelText: 'اسم المادة (مثلاً: الفيزياء)'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: unitController,
-              decoration: const InputDecoration(labelText: 'اسم الوحدة'),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: selectedType,
-              decoration: const InputDecoration(labelText: 'نوع السؤال'),
-              items: const [
-                DropdownMenuItem(value: 'mcq', child: Text('أتمتة (اختيار من متعدد)')),
-                DropdownMenuItem(value: 'essay', child: Text('مقالي (مع سلم تصحيح)')),
-              ],
-              onChanged: (val) => setState(() => selectedType = val!),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: questionController,
-              maxLines: 3,
-              decoration: const InputDecoration(labelText: 'نص السؤال'),
-            ),
-            if (selectedType == 'mcq') ...[
-              const SizedBox(height: 10),
-              TextField(controller: opt1Controller, decoration: const InputDecoration(labelText: 'الخيار الأول')),
-              TextField(controller: opt2Controller, decoration: const InputDecoration(labelText: 'الخيار الثاني')),
-              TextField(controller: opt3Controller, decoration: const InputDecoration(labelText: 'الخيار الثالث')),
-              TextField(controller: opt4Controller, decoration: const InputDecoration(labelText: 'الخيار الرابع')),
-            ],
-            const SizedBox(height: 10),
-            TextField(
-              controller: answerController,
-              maxLines: selectedType == 'essay' ? 4 : 1,
-              decoration: InputDecoration(
-                labelText: selectedType == 'mcq'
-                    ? 'الإجابة الصحيحة (اكتبها مطابقة لأحد الخيارات)'
-                    : 'الحل وسلّم التصحيح',
-              ),
-            ),
+            const Icon(Icons.verified_user, size: 64, color: Colors.indigo),
+            const SizedBox(height: 12),
+            const Text("الباقة الشاملة: تاسع + بكالوريا علمي وأدبي", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text("معرّف جهازك: ${widget.devId}", style: const TextStyle(color: Colors.grey, fontSize: 12)),
             const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton.icon(
-                    onPressed: publishQuestionToGitHub,
-                    icon: const Icon(Icons.cloud_upload),
-                    label: const Text('نشر السؤال للسحابة فوراً'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                  ),
+            TextField(controller: _c, decoration: const InputDecoration(labelText: "أدخل كود التفعيل", border: OutlineInputBorder())),
+            if (_err.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_err, style: const TextStyle(color: Colors.red))),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _verify, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)), child: const Text("تفعيل التطبيق")),
           ],
         ),
       ),
     );
   }
 }
+
+class HomeScreen extends StatefulWidget {
+  final String devId;
+  const HomeScreen({super.key, required this.devId});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  void _openAdminAuth() {
+    final passCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text("لوحة الإدارة السرية"),
+          content: TextField(controller: passCtrl, obscureText: true, decoration: const InputDecoration(labelText: "كلمة سر المدير (KHDR2026)")),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("إلغاء")),
+            ElevatedButton(
+              onPressed: () {
+                if (passCtrl.text.trim() == "KHDR2026") {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const Directionality(textDirection: TextDirection.rtl, child: AdminGeneratorScreen())));
+                }
+              },
+              child: const Text("دخول"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stages = syrianCurriculum2026.keys.toList();
+    final colors = [Colors.teal, Colors.indigo, Colors.deepPurple];
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        title: const Text("Alpha Super 2026"),
+        actions: [
+          IconButton(icon: const Icon(Icons.admin_panel_settings, color: Colors.amber), tooltip: "إدارة الأسئلة", onPressed: _openAdminAuth),
+          TextButton.icon(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ تم تحديث بنك الأسئلة بنجاح (Offline)"))),
+            icon: const Icon(Icons.cloud_sync, color: Colors.white),
+            label: const Text("تحديث", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: stages.length,
+        itemBuilder: (ctx, i) {
+          final st = stages[i];
+          final subs = syrianCurriculum2026[st]!;
+          return Card(
+            color: colors[i],
+            margin: const EdgeInsets.only(bottom: 14),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(18),
+              leading: const Icon(Icons.school, color: Colors.white, size: 32),
+              title: Text(st, style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold)),
+              subtitle: Text("${subs.length} مواد • منهاج 2026 المعتمد", style: const TextStyle(color: Colors.white70)),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: SubjectsScreen(stage: st, subjects: subs, color: colors[i])))),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SubjectsScreen extends StatelessWidget {
+  final String stage;
+  final Map<String, List<String>> subjects;
+  final Color color;
+  const SubjectsScreen({super.key, required this.stage, required this.subjects, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final subNames = subjects.keys.toList();
+    return Scaffold(
+      appBar: AppBar(title: Text(stage), backgroundColor: color, foregroundColor: Colors.white),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3),
+        itemCount: subNames.length,
+        itemBuilder: (ctx, i) => Card(
+          child: InkWell(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: UnitsScreen(stage: stage, subject: subNames[i], units: subjects[subNames[i]]!, color: color)))),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.menu_book, color: color, size: 32),
+                const SizedBox(height: 8),
+                Text(subNames[i], textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text("${subjects[subNames[i]]!.length} وحدات", style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class UnitsScreen extends StatelessWidget {
+  final String stage, subject;
+  final List<String> units;
+  final Color color;
+  const UnitsScreen({super.key, required this.stage, required this.subject, required this.units, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(subject), backgroundColor: color, foregroundColor: Colors.white),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: units.length,
+        itemBuilder: (ctx, i) => Card(
+          child: ListTile(
+            title: Text(units[i], style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text("أتمتة + مقالي مع سلم التصحيح"),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: QuizScreen(unitKey: "$stage|$subject|${units[i]}", title: units[i], color: color)))),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QuizScreen extends StatefulWidget {
+  final String unitKey, title;
+  final Color color;
+  const QuizScreen({super.key, required this.unitKey, required this.title, required this.color});
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  List<Map<String, dynamic>> customQs = [];
+  Map<int, int> selected = {};
+  Map<int, bool> showRubric = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQs();
+  }
+
+  Future<void> _loadQs() async {
+    final p = await SharedPreferences.getInstance();
+    
