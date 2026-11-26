@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CodeGeneratorScreen extends StatefulWidget {
   const CodeGeneratorScreen({super.key});
@@ -14,12 +15,30 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
   final String owner = 'alphasuper6-dev';
   final String repo = 'alpha_super';
   final String filePath = 'codes.json';
-  final String githubToken = 'ghp_vHJTKbSBC85KS8C3G7+9CKJRkXkwj0o4BYjpt' ;
 
+  final TextEditingController tokenController = TextEditingController();
   String selectedBranch = 'T9';
   final TextEditingController countController = TextEditingController(text: '10');
   bool isLoading = false;
   List<String> generatedCodes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedToken();
+  }
+
+  Future<void> _loadSavedToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      tokenController.text = prefs.getString('gh_admin_token') ?? '';
+    });
+  }
+
+  Future<void> _saveToken(String val) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('gh_admin_token', val.trim());
+  }
 
   String _randomCode(String prefix) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -30,6 +49,15 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
   }
 
   Future<void> _generateAndUpload() async {
+    final githubToken = tokenController.text.trim();
+    if (githubToken.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الرجاء لصق مفتاح GitHub Token أولاً في الخانة العلوية'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    await _saveToken(githubToken);
+
     int count = int.tryParse(countController.text.trim()) ?? 0;
     if (count <= 0 || count > 500) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,15 +72,11 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
     });
 
     try {
-      final url = Uri.parse('https://api.github.com/repos/alphasuper6-dev/alpha_super/contents/codes.json');
-      
-      
+      final url = Uri.parse('https://github.com');
       final headers = {
         'Authorization': 'Bearer $githubToken',
-                'Accept': 'application/vnd.github.v3+json',
+        'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
-        
-        'X-GitHub-Api-Version': '2022-11-28',
       };
 
       final getRes = await http.get(url, headers: headers);
@@ -131,6 +155,16 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            TextField(
+              controller: tokenController,
+              decoration: const InputDecoration(
+                labelText: 'مفتاح GitHub Token (يُحفظ تلقائياً على هاتفك)',
+                hintText: 'الصق ghp_... هنا مرة واحدة فقط',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.security),
+              ),
+            ),
+            const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: selectedBranch,
               decoration: const InputDecoration(labelText: 'اختر الفرع المطلوب للكود', border: OutlineInputBorder()),
@@ -142,13 +176,13 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
               ],
               onChanged: (val) => setState(() => selectedBranch = val!),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextField(
               controller: countController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'عدد الأكواد', border: OutlineInputBorder()),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             ElevatedButton.icon(
               onPressed: isLoading ? null : _generateAndUpload,
               icon: isLoading
@@ -156,7 +190,7 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
                   : const Icon(Icons.vpn_key),
               label: Text(isLoading ? 'جاري التوليد والرفع...' : 'توليد ورفع للسحابة'),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             if (generatedCodes.isNotEmpty) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
