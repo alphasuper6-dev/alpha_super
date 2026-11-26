@@ -103,5 +103,10 @@
     "deviceId": "",
     "status": "unused",
     "branch": "SCI"
+  },
+  "T9-LVT5-R57D": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "T9"
   }
 }
