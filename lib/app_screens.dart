@@ -132,8 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final stages = curriculumData.keys.toList();
+  Widget build(BuildContext context) 
+    final stages = syrianCurriculum.keys.toList();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -172,17 +173,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                     return;
                   }
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: curriculumData[stage]!, allQs: allQs),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-        ),
+                 Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: syrianCurriculum[stage]!, allQs: allQs),
+  ),
+);
+                  
+          
+    
       ),
     );
   }
