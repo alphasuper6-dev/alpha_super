@@ -17,11 +17,26 @@ jobs:
           if [ ! -d "android" ]; then
             flutter create . --project-name alpha_super
           fi
+      - name: Enable Screenshot Protection
+        run: |
+          MAIN_KT=$(find android/app/src/main/kotlin -name "MainActivity.kt")
+          cat << 'EOF' > "$MAIN_KT"
+          package com.example.alpha_super
+          import android.os.Bundle
+          import android.view.WindowManager
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+              }
+          }
+          EOF
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
           name: alpha-super-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-
-        
+          
