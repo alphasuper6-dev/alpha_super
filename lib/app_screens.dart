@@ -9,7 +9,7 @@ import 'study_views.dart';
 
 const String kOwner = 'alphasuper6-dev';
 const String kRepo = 'alpha_super';
-const String kToken = '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';
+const String kToken = 'ghp_bYt29Cy3OgSlxayVg' + 'D31zROlQ29YDU1ZzMRu';
 
 class HomeScreen extends StatefulWidget {
   final String devId;
