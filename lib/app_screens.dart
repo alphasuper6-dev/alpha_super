@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: const Text('إضافة أسئلة جديدة للسحابة'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPanelScreen()));
                 },
               ),
               ListTile(
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stages = kCurriculum.keys.toList();
+    final stages = curriculumData.keys.toList();
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SubjectsScreen(stageName: stage, subjects: kCurriculum[stage]!, allQs: allQs),
+                      builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: curriculumData[stage]!, allQs: allQs),
                     ),
                   );
                 },
