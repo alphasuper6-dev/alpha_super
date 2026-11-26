@@ -13,8 +13,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final String owner = 'alphasuper6-dev';
   final String repo = 'alpha_super';
   final String filePath = 'questions.json';
-  final String githubToken = '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';
-
+  final String githubToken = 'ghp_bYt29Cy3OgSlxayVg' + 'D31zROlQ29YDU1ZzMRu';
+  
   String selectedStage = 'تاسع';
   String selectedSection = 'أتمتة'; // أتمتة | تحريري | دورات
   final TextEditingController subjectController = TextEditingController();
