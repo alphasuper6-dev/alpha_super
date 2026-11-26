@@ -22,9 +22,15 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.9'
+          flutter-version: '3.19.6'
           channel: 'stable'
           cache: true
+
+      - name: Upgrade Android Gradle safely
+        run: |
+          cp android/app/src/main/AndroidManifest.xml /tmp/AndroidManifest.xml || true
+          flutter create .
+          cp /tmp/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
 
       - name: Get dependencies
         run: flutter pub get
