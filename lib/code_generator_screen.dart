@@ -14,7 +14,8 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
   final String owner = 'alphasuper6-dev';
   final String repo = 'alpha_super';
   final String filePath = 'codes.json';
-  final String githubToken = 'ghp_bYt29Cy3OgSlxayVg' + 'D31zROlQ29YDU1ZzMRu';
+  final String githubToken = 'ghp_XAM8wkhrQXE1qA5' + 'AL2tA4nVyaxnrUQ0rgbVZ';
+  
   
   String selectedBranch = 'T9';
   final TextEditingController countController = TextEditingController(text: '10');
