@@ -53,5 +53,55 @@
     "deviceId": "",
     "status": "unused",
     "branch": "T9"
+  },
+  "SCI-VVUQ-KEB5": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-257Q-DGKP": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-89EF-F39V": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-JLPG-24L6": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-K6KG-7MPH": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-6ZRU-EURY": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-A8FB-9F23": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-47JP-G8BH": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-Q4GK-85E9": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
+  },
+  "SCI-Y5QH-HNN8": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
   }
 }
