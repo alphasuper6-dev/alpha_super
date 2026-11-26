@@ -44,10 +44,14 @@ class _CodeGeneratorScreenState extends State<CodeGeneratorScreen> {
     });
 
     try {
-      final url = Uri.parse('https://github.com');
+      final url = Uri.parse('https://api.github.com/repos/alphasuper6-dev/alpha_super/contents/codes.json');
+      
+      
       final headers = {
         'Authorization': 'Bearer $githubToken',
-        'Accept': 'application/vnd.github+json',
+                'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        
         'X-GitHub-Api-Version': '2022-11-28',
       };
 
