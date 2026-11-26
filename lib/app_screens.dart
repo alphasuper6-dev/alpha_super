@@ -16,6 +16,9 @@ class HomeScreen extends StatefulWidget {
   final String activeBranch;
   const HomeScreen({super.key, required this.devId, required this.activeBranch});
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
   
   State<HomeScreen> createState() => _HomeScreenState();
 }
