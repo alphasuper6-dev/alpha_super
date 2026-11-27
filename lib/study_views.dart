@@ -16,12 +16,29 @@ class SubjectsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(stageName)),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.2),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.2,
+        ),
         itemCount: subs.length,
         itemBuilder: (context, i) {
           final sub = subs[i];
           return InkWell(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: UnitsScreen(subjectName: sub, units: subjectsMap[sub]!, allQs: allQs)))),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: UnitsScreen(
+                    subjectName: sub,
+                    units: subjectsMap[sub]!,
+                    allQs: allQs,
+                  ),
+                ),
+              ),
+            ),
             child: Card(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -45,8 +62,19 @@ class UnitsScreen extends StatelessWidget {
   final List<dynamic> allQs;
   const UnitsScreen({super.key, required this.subjectName, required this.units, required this.allQs});
 
+  String _norm(String text) {
+    return text
+        .trim()
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll('ة', 'ه')
+        .replaceAll('ى', 'ي');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final targetSub = _norm(subjectName);
     return Scaffold(
       appBar: AppBar(title: Text(subjectName)),
       body: ListView.builder(
@@ -54,13 +82,33 @@ class UnitsScreen extends StatelessWidget {
         itemCount: units.length,
         itemBuilder: (context, i) {
           final u = units[i];
-          final uQs = allQs.where((q) => q['subject'] == subjectName && q['unit'] == u).toList();
+          final targetUnit = _norm(u);
+          final uQs = allQs.where((q) {
+            final qSub = _norm((q['subject'] ?? '').toString());
+            final qUnit = _norm((q['unit'] ?? '').toString());
+            final subMatch = qSub == targetSub || qSub.contains(targetSub) || targetSub.contains(qSub);
+            final unitMatch = qUnit.isEmpty || qUnit == targetUnit || targetUnit.contains(qUnit) || qUnit.contains(targetUnit);
+            return subMatch && unitMatch;
+          }).toList();
+
           return Card(
             child: ListTile(
               leading: CircleAvatar(child: Text("${i + 1}")),
               title: Text(u, style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text("الأسئلة: ${uQs.length}"),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: LessonStudyScreen(subjectName: subjectName, lessonName: u, allQuestions: uQs)))),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: LessonStudyScreen(
+                      subjectName: subjectName,
+                      lessonName: u,
+                      allQuestions: uQs,
+                    ),
+                  ),
+                ),
+              ),
             ),
           );
         },
