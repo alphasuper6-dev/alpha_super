@@ -43,10 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => syncing = true);
     try {
       final p = await SharedPreferences.getInstance();
-      final url = Uri.https(
-        '://github.com',
-        '/repos/alphasuper6-dev/alpha_super/contents/questions.json',
-        {'ref': 'main', 't': '${DateTime.now().millisecondsSinceEpoch}'},
+      final host = ['api', 'github', 'com'].join('.');
+      final file = ['questions', 'json'].join('.');
+      final ts = DateTime.now().millisecondsSinceEpoch.toString();
+      final url = Uri.parse(
+        'https://$host/repos/alphasuper6-dev/alpha_super/contents/$file?ref=main&t=$ts',
       );
 
       final res = await http.get(
@@ -59,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final cleanBase64 = data['content'].toString().replaceAll('\n', '');
+        final cleanBase64 = data['content'].toString().replaceAll(RegExp(r'\s+'), '');
         final raw = utf8.decode(base64Decode(cleanBase64));
         await p.setString('offline_questions', raw);
         setState(() => allQs = jsonDecode(raw));
