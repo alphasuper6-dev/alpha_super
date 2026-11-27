@@ -143,7 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => DeviceLockScreen(devId: widget.devId)),
+                MaterialPageRoute(builder: (_) => const SplashGate()),
+        
         (route) => false,
       );
     } catch (e) {
@@ -198,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('إضافة أسئلة جديدة للسحابة'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) =>  AdminScreen()));
               },
             ),
             ListTile(
