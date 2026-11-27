@@ -223,5 +223,10 @@
     "deviceId": "",
     "status": "unused",
     "branch": "SCI"
+  },
+  "SCI-4RT3-56HC": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
   }
 }
