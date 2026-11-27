@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
   final String devId;
   final String activeBranch;
   const HomeScreen({super.key, required this.devId, required this.activeBranch});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -33,30 +34,49 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadOffline() async {
     final p = await SharedPreferences.getInstance();
     final s = p.getString('offline_questions');
-    if (s != null && s.isNotEmpty) setState(() => allQs = jsonDecode(s));
+    if (s != null && s.isNotEmpty) {
+      setState(() => allQs = jsonDecode(s));
+    }
   }
 
   Future<void> _syncCloud() async {
     setState(() => syncing = true);
     try {
+      final url = Uri.parse(
+        'https://github.com{DateTime.now().millisecondsSinceEpoch}',
+      );
       final res = await http.get(
-        Uri.parse('https://raw.githubusercontent.com/' + 'alphasuper6-dev/alpha_super/main/questions.json'),
+        url,
+        headers: {
+          if (kToken.isNotEmpty) 'Authorization': 'Bearer $kToken',
+          'Accept': 'application/vnd.github.v3+json',
+        },
       );
       if (res.statusCode == 200) {
-        final raw = utf8.decode(res.bodyBytes);
+        final data = jsonDecode(res.body);
+        final cleanBase64 = data['content'].toString().replaceAll('\n', '');
+        final raw = utf8.decode(base64Decode(cleanBase64));
         final p = await SharedPreferences.getInstance();
         await p.setString('offline_questions', raw);
         setState(() => allQs = jsonDecode(raw));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم تحديث الأسئلة بنجاح!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('تم تحديث الأسئلة بنجاح!'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
+      } else {
+        throw Exception('HTTP ${res.statusCode}');
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر التحديث السحابي'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('تعذر التحديث السحابي'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -67,8 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isStageUnlocked(String stageName) {
     if (widget.activeBranch == 'ALL') return true;
     if (widget.activeBranch == 'T9' && stageName.contains('التاسع')) return true;
-    if ((widget.activeBranch == 'SC' || widget.activeBranch == 'SCI') && stageName.contains('العلمي')) return true;
-    if ((widget.activeBranch == 'LT' || widget.activeBranch == 'LIT') && stageName.contains('الأدبي')) return true;
+    if ((widget.activeBranch == 'SC' || widget.activeBranch == 'ALL') && stageName.contains('العلمي')) return true;
+    if ((widget.activeBranch == 'LT' || widget.activeBranch == 'ALL') && stageName.contains('الأدبي')) return true;
     return false;
   }
 
@@ -78,9 +98,16 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('دخول الإدارة'),
-        content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(hintText: 'كلمة المرور')),
+        content: TextField(
+          controller: c,
+          obscureText: true,
+          decoration: const InputDecoration(hintText: 'كلمة المرور'),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
           ElevatedButton(
             onPressed: () {
               if (c.text.trim() == 'KHDR2026') {
@@ -98,8 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _adminMenu() {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+      builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -108,7 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('إضافة أسئلة جديدة للسحابة'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPanelScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminScreen()),
+                );
               },
             ),
             ListTile(
@@ -116,7 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('مولّد الأكواد السحابي'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CodeGeneratorScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CodeGeneratorScreen()),
+                );
               },
             ),
           ],
@@ -134,7 +166,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: syncing
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.cloud_download),
             onPressed: syncing ? null : _syncCloud,
           ),
@@ -153,21 +189,34 @@ class _HomeScreenState extends State<HomeScreen> {
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
-              leading: Icon(unlocked ? Icons.lock_open : Icons.lock, color: unlocked ? Colors.green : Colors.grey),
-              title: Text(stage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              subtitle: Text(unlocked ? 'مفعّل بالكامل' : 'مقفل (يتطلب كود هذا الفرع)'),
+              leading: Icon(
+                unlocked ? Icons.lock_open : Icons.lock,
+                color: unlocked ? Colors.green : Colors.grey,
+              ),
+              title: Text(
+                stage,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                unlocked ? 'مفعّل بالكامل' : 'مقفل (يتطلب كود هذا الفرع)',
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 if (!unlocked) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('هذا الفرع غير مشمول في كود التفعيل الخاص بك'), backgroundColor: Colors.orange),
+                    const SnackBar(
+                      content: Text('هذا القسم مقفل حسب كود التفعيل الخاص بك'),
+                    ),
                   );
                   return;
                 }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => SubjectsScreen(stageName: stage, subjectsMap: syrianCurriculum2026[stage]!, allQs: allQs),
+                    builder: (_) => SubjectsScreen(
+                      stageName: stage,
+                      allQuestions: allQs,
+                    ),
                   ),
                 );
               },
