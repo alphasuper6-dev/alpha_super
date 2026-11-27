@@ -199,8 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('إضافة أسئلة جديدة للسحابة'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) =>  AdminScreen()));
-              },
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPanelScreen()));
+                
             ),
             ListTile(
               leading: const Icon(Icons.vpn_key),
