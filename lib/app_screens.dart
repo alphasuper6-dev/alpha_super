@@ -136,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => AdminScreen()),
+                  MaterialPageRoute(builder: (_) => AdminPanelScreen()),
                 );
               },
             ),
