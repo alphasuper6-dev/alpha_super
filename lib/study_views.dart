@@ -7,7 +7,12 @@ class SubjectsScreen extends StatelessWidget {
   final String stageName;
   final Map<String, List<String>> subjectsMap;
   final List<dynamic> allQs;
-  const SubjectsScreen({super.key, required this.stageName, required this.subjectsMap, required this.allQs});
+  const SubjectsScreen({
+    super.key,
+    required this.stageName,
+    required this.subjectsMap,
+    required this.allQs,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +48,13 @@ class SubjectsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.menu_book, size: 38, color: Colors.indigo),
+                  const Icon(Icons.menu_book, size: 36, color: Colors.indigo),
                   const SizedBox(height: 8),
-                  Text(sub, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    sub,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -60,7 +69,12 @@ class UnitsScreen extends StatelessWidget {
   final String subjectName;
   final List<String> units;
   final List<dynamic> allQs;
-  const UnitsScreen({super.key, required this.subjectName, required this.units, required this.allQs});
+  const UnitsScreen({
+    super.key,
+    required this.subjectName,
+    required this.units,
+    required this.allQs,
+  });
 
   String _norm(String text) {
     return text
@@ -69,7 +83,15 @@ class UnitsScreen extends StatelessWidget {
         .replaceAll('إ', 'ا')
         .replaceAll('آ', 'ا')
         .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي');
+        .replaceAll('ى', 'ي')
+        .replaceAll('الاولي', '1')
+        .replaceAll('الثانيه', '2')
+        .replaceAll('الثالثه', '3')
+        .replaceAll('الرابعه', '4')
+        .replaceAll('الخامسه', '5')
+        .replaceAll('السادسه', '6')
+        .replaceAll('السابعه', '7')
+        .replaceAll('الثامنه', '8');
   }
 
   @override
@@ -86,8 +108,13 @@ class UnitsScreen extends StatelessWidget {
           final uQs = allQs.where((q) {
             final qSub = _norm((q['subject'] ?? '').toString());
             final qUnit = _norm((q['unit'] ?? '').toString());
-            final subMatch = qSub == targetSub || qSub.contains(targetSub) || targetSub.contains(qSub);
-            final unitMatch = qUnit.isEmpty || qUnit == targetUnit || targetUnit.contains(qUnit) || qUnit.contains(targetUnit);
+            final subMatch = qSub == targetSub ||
+                qSub.contains(targetSub) ||
+                targetSub.contains(qSub);
+            final unitMatch = qUnit.isEmpty ||
+                qUnit == targetUnit ||
+                qUnit.contains(targetUnit) ||
+                targetUnit.contains(qUnit);
             return subMatch && unitMatch;
           }).toList();
 
@@ -125,6 +152,7 @@ class SavedQuestionsScreen extends StatefulWidget {
 
 class _SavedQuestionsScreenState extends State<SavedQuestionsScreen> {
   List<Map<String, dynamic>> list = [];
+
   @override
   void initState() {
     super.initState();
@@ -148,10 +176,13 @@ class _SavedQuestionsScreenState extends State<SavedQuestionsScreen> {
               itemCount: list.length,
               itemBuilder: (context, i) {
                 final q = list[i];
+                final List<dynamic> opts = q['options'] ?? [];
+                final int cIdx = (q['correctIndex'] is int) ? q['correctIndex'] : -1;
+                final String ans = (q['answer'] ?? (cIdx >= 0 && cIdx < opts.length ? opts[cIdx] : '')).toString();
                 return Card(
                   child: ListTile(
                     title: Text(q['question'] ?? ''),
-                    subtitle: Text("الحل: ${q['answer']}\n${q['explanation'] ?? ''}"),
+                    subtitle: Text("الحل: $ans"),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () async {
