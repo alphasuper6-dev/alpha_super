@@ -228,5 +228,10 @@
     "deviceId": "",
     "status": "unused",
     "branch": "SCI"
+  },
+  "SCI-T7YW-NWSY": {
+    "deviceId": "",
+    "status": "unused",
+    "branch": "SCI"
   }
 }
