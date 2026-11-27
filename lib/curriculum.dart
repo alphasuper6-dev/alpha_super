@@ -1,152 +1,198 @@
-final Map<String, Map<String, List<String>>> syrianCurriculum2026 = {
-  "التاسع الأساسي": {
-    "الرياضيات": [
-      "الوحدة 1: الأعداد والكسور",
-      "الوحدة 2: القوى والجذور",
-      "الوحدة 3: المعادلات والمتراجحات",
-      "الوحدة 4: التابع الخطي والتآلفي",
-      "الوحدة 5: الإحصاء والاحتمالات",
-      "الوحدة 6: مبرهنة تالس والنسب المثلثية",
-      "الوحدة 7: الزوايا والمضلعات في الدائرة",
-      "الوحدة 8: المجسمات الهندسية",
-    ],
-    "العلوم العامة": [
-      "الوحدة 1: الجهاز العصبي والحواس",
-      "الوحدة 2: الغدد الصم والتكاثر",
-      "الوحدة 3: الوراثة",
-      "الوحدة 4: علم البيئة",
-    ],
-    "الفيزياء والكيمياء": [
-      "الوحدة 1: الحقل المغناطيسي والتيار الكهربائي",
-      "الوحدة 2: التحريض الكهرطيسي",
-      "الوحدة 3: القوة والطاقة",
-      "الوحدة 4: المحاليل المائية والحموض والأسس",
-      "الوحدة 5: الكيمياء العضوية",
-    ],
-    "اللغة العربية": [
-      "الوحدة 1: القضايا الوطنية والقومية",
-      "الوحدة 2: الأدب الوجداني",
-      "الوحدة 3: القضايا الاجتماعية",
-      "الوحدة 4: القواعد والإملاء",
-    ],
-    "اللغة الإنكليزية": [
-      "الوحدة 1: الثقافة والمجتمع",
-      "الوحدة 2: العلوم والتكنولوجيا",
-      "الوحدة 3: البيئة والصحة",
-      "الوحدة 4: القواعد والمفردات",
-    ],
-    "اللغة الفرنسية": [
-      "الوحدة 1: التواصل والحياة اليومية",
-      "الوحدة 2: السفر والبيئة",
-      "الوحدة 3: القواعد والتعبير",
-    ],
-    "الاجتماعيات": [
-      "الوحدة 1: الجغرافيا الطبيعية والبشرية لسوريا",
-      "الوحدة 2: التاريخ الحديث والمعاصر",
-    ],
-    "التربية الدينية": [
-      "الوحدة 1: القرآن الكريم وعلومه",
-      "الوحدة 2: الحديث الشريف والسيرة",
-      "الوحدة 3: العقيدة والفقه والأخلاق",
-    ],
-  },
-  "البكالوريا العلمي": {
-    "الرياضيات": [
-      "الوحدة 1: المتتاليات العددية",
-      "الوحدة 2: النهايات والاستمرار",
-      "الوحدة 3: الاشتقاق وتطبيقاته",
-      "الوحدة 4: التابع اللوغاريتمي",
-      "الوحدة 5: التابع الأسي",
-      "الوحدة 6: التكامل وحساب المساحات",
-      "الوحدة 7: المعادلات التفاضلية",
-      "الوحدة 8: الأشعة في الفراغ",
-      "الوحدة 9: الجداء السلمي في الفراغ",
-      "الوحدة 10: المستقيمات والمستويات في الفراغ",
-      "الوحدة 11: الأعداد العقدية",
-      "الوحدة 12: تطبيقات الأعداد العقدية في الهندسة",
-      "الوحدة 13: التحليل التوافقي والاحتمالات",
-    ],
-    "الفيزياء": [
-      "الوحدة 1: النواس المرن",
-      "الوحدة 2: النواس الفتل",
-      "الوحدة 3: النواس الثقلي",
-      "الوحدة 4: ميكانيك السوائل",
-      "الوحدة 5: المغناطيسية",
-      "الوحدة 6: التحريض الكهرطيسي",
-      "الوحدة 7: التيار المتناوب الجيبي",
-      "الوحدة 8: الأمواج المستقرة",
-      "الوحدة 9: الإلكترونيات",
-    ],
-    "الكيمياء": [
-      "الوحدة 1: الكيمياء النووية",
-      "الوحدة 2: الغازات",
-      "الوحدة 3: سرعة التفاعل الكيميائي",
-      "الوحدة 4: التوازن الكيميائي",
-      "الوحدة 5: الحموض والأسس",
-      "الوحدة 6: الأملاح",
-      "الوحدة 7: المعايرة الحجمية",
-      "الوحدة 8: الكيمياء العضوية",
-    ],
-    "علم الأحياء": [
-      "الوحدة 1: التنسيق العصبي والهرموني",
-      "الوحدة 2: التكاثر عند الإنسان والنبات",
-      "الوحدة 3: الوراثة الجزيئية والمندلية",
-    ],
-    "اللغة العربية": [
-      "الوحدة 1: الأدب القومي والوطني",
-      "الوحدة 2: الأدب الاجتماعي والوجداني",
-      "الوحدة 3: القواعد والبلاغة",
-    ],
-    "اللغة الإنكليزية": [
-      "الوحدة 1: وحدات الفصل الأول (1-6)",
-      "الوحدة 2: وحدات الفصل الثاني (7-12)",
-      "الوحدة 3: القواعد والأزمنة",
-    ],
-    "اللغة الفرنسية": [
-      "الوحدة 1: نصوص وقواعد الفصل الأول",
-      "الوحدة 2: نصوص وقواعد الفصل الثاني",
-    ],
-    "التربية الدينية": [
-      "الوحدة 1: التفسير وعلوم القرآن",
-      "الوحدة 2: الحديث النبوي والسيرة",
-      "الوحدة 3: الفقه والعقيدة",
-    ],
-  },
-  "البكالوريا الأدبي": {
-    "اللغة العربية": [
-      "الوحدة 1: الأدب القومي والوطني",
-      "الوحدة 2: الأدب المهجري والاجتماعي",
-      "الوحدة 3: النقد الأدبي والبلاغة",
-      "الوحدة 4: النحو والصرف",
-    ],
-    "الفلسفة والعلوم الإنسانية": [
-      "الوحدة 1: المعرفة العلمية والمنطق",
-      "الوحدة 2: الأخلاق والقيم",
-      "الوحدة 3: علم النفس وعلم الاجتماع",
-    ],
-    "التاريخ": [
-      "الوحدة 1: القضايا العربية المعاصرة",
-      "الوحدة 2: الثورات والتحرر الوطني",
-      "الوحدة 3: تاريخ سوريا الحديث",
-    ],
-    "الجغرافيا": [
-      "الوحدة 1: الجغرافيا البشرية والسكان",
-      "الوحدة 2: الموارد الاقتصادية في الوطن العربي",
-      "الوحدة 3: الجغرافيا الإقليمية لسوريا",
-    ],
-    "اللغة الإنكليزية": [
-      "الوحدة 1: وحدات الفصل الأول",
-      "الوحدة 2: وحدات الفصل الثاني",
-      "الوحدة 3: القواعد والكتابة",
-    ],
-    "اللغة الفرنسية": [
-      "الوحدة 1: نصوص وقواعد الفصل الأول",
-      "الوحدة 2: نصوص وقواعد الفصل الثاني",
-    ],
-    "التربية الدينية": [
-      "الوحدة 1: القرآن الكريم والتفسير",
-      "الوحدة 2: الحديث الشريف والسيرة",
-      "الوحدة 3: العقيدة والفقه",
-    ],
-  },
-};
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'lesson_study_screen.dart';
+
+class SubjectsScreen extends StatelessWidget {
+  final String stageName;
+  final Map<String, List<String>> subjectsMap;
+  final List<dynamic> allQs;
+  const SubjectsScreen({super.key, required this.stageName, required this.subjectsMap, required this.allQs});
+
+  @override
+  Widget build(BuildContext context) {
+    final subs = subjectsMap.keys.toList();
+    return Scaffold(
+      appBar: AppBar(title: Text(stageName)),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.2,
+        ),
+        itemCount: subs.length,
+        itemBuilder: (context, i) {
+          final sub = subs[i];
+          return InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: UnitsScreen(
+                    subjectName: sub,
+                    units: subjectsMap[sub]!,
+                    allQs: allQs,
+                  ),
+                ),
+              ),
+            ),
+            child: Card(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.menu_book, size: 38, color: Colors.indigo),
+                  const SizedBox(height: 8),
+                  Text(sub, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class UnitsScreen extends StatelessWidget {
+  final String subjectName;
+  final List<String> units;
+  final List<dynamic> allQs;
+  const UnitsScreen({super.key, required this.subjectName, required this.units, required this.allQs});
+
+  String _norm(String text) {
+    return text
+        .trim()
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll('ة', 'ه')
+        .replaceAll('ى', 'ي')
+        .replaceAll('الاولي', '1')
+        .replaceAll('الأولي', '1')
+        .replaceAll('الأولى', '1')
+        .replaceAll('الثانيه', '2')
+        .replaceAll('الثانية', '2')
+        .replaceAll('الثالثه', '3')
+        .replaceAll('الثالثة', '3')
+        .replaceAll('الرابعه', '4')
+        .replaceAll('الرابعة', '4')
+        .replaceAll('الخامسه', '5')
+        .replaceAll('الخامسة', '5')
+        .replaceAll('السادسه', '6')
+        .replaceAll('السادسة', '6')
+        .replaceAll('السابعه', '7')
+        .replaceAll('السابعة', '7')
+        .replaceAll('الثامنه', '8')
+        .replaceAll('الثامنة', '8')
+        .replaceAll('التاسعه', '9')
+        .replaceAll('التاسعة', '9')
+        .replaceAll('العاشره', '10')
+        .replaceAll('العاشرة', '10')
+        .replaceAll('الحاديه عشره', '11')
+        .replaceAll('الثانيه عشره', '12')
+        .replaceAll('الثالثه عشره', '13');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final targetSub = _norm(subjectName);
+    return Scaffold(
+      appBar: AppBar(title: Text(subjectName)),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: units.length,
+        itemBuilder: (context, i) {
+          final u = units[i];
+          final targetUnit = _norm(u);
+          final uQs = allQs.where((q) {
+            final qSub = _norm((q['subject'] ?? '').toString());
+            final qUnit = _norm((q['unit'] ?? '').toString());
+            final subMatch = qSub == targetSub || qSub.contains(targetSub) || targetSub.contains(qSub);
+            final unitMatch = qUnit.isEmpty ||
+                qUnit == targetUnit ||
+                targetUnit.contains(qUnit) ||
+                qUnit.contains(targetUnit);
+            return subMatch && unitMatch;
+          }).toList();
+
+          return Card(
+            child: ListTile(
+              leading: CircleAvatar(child: Text("${i + 1}")),
+              title: Text(u, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text("الأسئلة: ${uQs.length}"),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: LessonStudyScreen(
+                      subjectName: subjectName,
+                      lessonName: u,
+                      allQuestions: uQs,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SavedQuestionsScreen extends StatefulWidget {
+  const SavedQuestionsScreen({super.key});
+  @override
+  State<SavedQuestionsScreen> createState() => _SavedQuestionsScreenState();
+}
+
+class _SavedQuestionsScreenState extends State<SavedQuestionsScreen> {
+  List<Map<String, dynamic>> list = [];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getStringList('saved_questions') ?? [];
+    setState(() => list = raw.map((e) => jsonDecode(e) as Map<String, dynamic>).toList());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("الأسئلة المحفوظة")),
+      body: list.isEmpty
+          ? const Center(child: Text("لا توجد أسئلة محفوظة"))
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: list.length,
+              itemBuilder: (context, i) {
+                final q = list[i];
+                return Card(
+                  child: ListTile(
+                    title: Text(q['question'] ?? ''),
+                    subtitle: Text("الحل: ${q['answer']}\n${q['explanation'] ?? ''}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        final p = await SharedPreferences.getInstance();
+                        final raw = p.getStringList('saved_questions') ?? [];
+                        raw.removeAt(i);
+                        await p.setStringList('saved_questions', raw);
+                        _load();
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
