@@ -43,18 +43,20 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => syncing = true);
     try {
       final p = await SharedPreferences.getInstance();
-      final savedToken = p.getString('gh_admin_token') ?? kToken;
-      final url = Uri.parse(
-        'https://github.com{DateTime.now().millisecondsSinceEpoch}',
+      final url = Uri.https(
+        '://github.com',
+        '/repos/alphasuper6-dev/alpha_super/contents/questions.json',
+        {'ref': 'main', 't': '${DateTime.now().millisecondsSinceEpoch}'},
       );
+
       final res = await http.get(
         url,
         headers: {
-          if (savedToken.isNotEmpty) 'Authorization': 'Bearer $savedToken',
           'Accept': 'application/vnd.github.v3+json',
           'User-Agent': 'AlphaSuperApp',
         },
       );
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final cleanBase64 = data['content'].toString().replaceAll('\n', '');
@@ -76,9 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تعذر التحديث السحابي: $e'),
+            content: Text('تعذر التحديث: $e'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 7),
+            duration: const Duration(seconds: 6),
           ),
         );
       }
