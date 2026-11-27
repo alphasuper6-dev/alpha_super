@@ -122,7 +122,6 @@ class _QuestionCardWidgetState extends State<QuestionCardWidget> {
                 child: Chip(label: Text('دورة ${q['year']}'), backgroundColor: Colors.amber.shade100),
               ),
 
-            // عرض رسمة هندسية مدمجة (بدون نت) إذا وجد حقل shape
             if (shape.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -140,7 +139,6 @@ class _QuestionCardWidgetState extends State<QuestionCardWidget> {
                 ),
               ),
 
-            // عرض صورة خارجية إذا وجد رابط image
             if (imageUrl.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -235,6 +233,14 @@ class GeometryShapePainter extends CustomPainter {
   final String shape;
   GeometryShapePainter(this.shape);
 
+  void _drawLabel(Canvas canvas, String text, Offset offset) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, offset);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -273,7 +279,4 @@ class GeometryShapePainter extends CustomPainter {
       final left = Offset(w * 0.2, h * 0.8);
       final right = Offset(w * 0.8, h * 0.8);
       canvas.drawLine(top, left, paint);
-      canvas.drawLine(top, right, paint);
-      canvas.drawOval(Rect.fromLTRB(w * 0.2, h * 0.7, w * 0.8, h * 0.9), paint);
-      canvas.drawLine(top, Offset(w * 0.5, h * 0.8), dashedPaint);
       
