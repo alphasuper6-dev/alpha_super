@@ -7,6 +7,7 @@ import 'admin_screen.dart';
 import 'code_generator_screen.dart';
 import 'study_views.dart';
 import 'main.dart';
+import 'pro_tools.dart';
 
 const String kOwner = 'alphasuper6-dev';
 const String kRepo = 'alpha_super';
@@ -46,9 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final p = await SharedPreferences.getInstance();
       final host = ['api', 'github', 'com'].join('.');
       final file = ['questions', 'json'].join('.');
-      final ts = DateTime.now().millisecondsSinceEpoch.toString();
+      final ts = DateTime.now().millisecondsSinceEpoch;
       final url = Uri.parse(
-        'https://$host/repos/$kOwner/$kRepo/contents/$file?ref=main&t=$ts',
+        'https://$host/repos/$kOwner/$kRepo/contents/$file?t=$ts',
       );
       final res = await http.get(
         url,
@@ -59,13 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final cleanBase64 = data['content'].toString().replaceAll(RegExp(r'\s+'), '');
+        final cleanBase64 = data['content'].toString().replaceAll('\n', '');
         final raw = utf8.decode(base64Decode(cleanBase64));
         await p.setString('offline_questions', raw);
         setState(() => allQs = jsonDecode(raw));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم تحديث الأسئلة بنجاح!'), backgroundColor: Colors.green),
+            const SnackBar(content: Text('تم تحديث الأسئلة من السحابة بنجاح ✅')),
           );
         }
       } else {
@@ -74,20 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تعذر التحديث: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('تعذر التحديث: $e')),
         );
       }
     } finally {
       if (mounted) setState(() => syncing = false);
     }
   }
-  
-Future<void> _confirmUnbindDevice() async {
+
+  Future<void> _confirmUnbindDevice() async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('فك ربط الجهاز / نقل الحساب'),
-        content: const Text('هل أنت متأكد من فك ارتباط هذا الجهاز لنقل حسابك لجهاز آخر؟'),
+        content: const Text('هل تريد فك ربط هذا الجهاز لنقل حسابك لجهاز آخر؟'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
           ElevatedButton(
@@ -106,19 +107,19 @@ Future<void> _confirmUnbindDevice() async {
     try {
       final p = await SharedPreferences.getInstance();
       final activeCode = p.getString('active_code') ?? '';
-      final token = p.getString('gh_token') ?? p.getString('github_token') ?? p.getString('token') ?? '';
+      final token = p.getString('gh_token') ?? '';
       if (activeCode.isNotEmpty && token.isNotEmpty) {
         final headers = {
           'Accept': 'application/vnd.github.v3+json',
           'User-Agent': 'AlphaSuperApp',
           'Authorization': 'Bearer $token',
         };
-        final getUri = kCodesUri.replace(queryParameters: {'ref': 'main', 't': '${DateTime.now().millisecondsSinceEpoch}'});
+        final getUri = kCodesUri.replace(queryParameters: {'t': '${DateTime.now().millisecondsSinceEpoch}'});
         final res = await http.get(getUri, headers: headers);
         if (res.statusCode == 200) {
           final bodyJson = jsonDecode(res.body);
           final sha = bodyJson['sha'];
-          final cleanB64 = bodyJson['content'].toString().replaceAll(RegExp(r'\s+'), '');
+          final cleanB64 = bodyJson['content'].toString().replaceAll('\n', '');
           final Map<String, dynamic> codesMap = jsonDecode(utf8.decode(base64Decode(cleanB64)));
           if (codesMap.containsKey(activeCode)) {
             final entry = Map<String, dynamic>.from(codesMap[activeCode]);
@@ -142,19 +143,18 @@ Future<void> _confirmUnbindDevice() async {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => Directionality(textDirection: TextDirection.rtl, child: ActivationScreen(devId: widget.devId))),
+        MaterialPageRoute(builder: (_) => DeviceLockScreen(devId: widget.devId)),
         (route) => false,
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ: $e')));
       }
     } finally {
       if (mounted) setState(() => unbinding = false);
     }
   }
-
-  bool _isStageUnlocked(String stageName) {
+   bool _isStageUnlocked(String stageName) {
     final b = widget.activeBranch.toUpperCase();
     if (b == 'ALL') return true;
     if (b == 'T9' && stageName.contains('التاسع')) return true;
@@ -169,7 +169,7 @@ Future<void> _confirmUnbindDevice() async {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('دخول الإدارة'),
-        content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(hintText: 'كلمة المرور')),
+        content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(hintText: 'رمز الإدارة')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
@@ -194,19 +194,19 @@ Future<void> _confirmUnbindDevice() async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.add_circle, color: Colors.indigo),
+              leading: const Icon(Icons.add_circle_outline),
               title: const Text('إضافة أسئلة جديدة للسحابة'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPanelScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen()));
               },
             ),
             ListTile(
-              leading: const Icon(Icons.vpn_key, color: Colors.green),
+              leading: const Icon(Icons.vpn_key),
               title: const Text('مولّد الأكواد السحابي'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => CodeGeneratorScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const CodeGeneratorScreen()));
               },
             ),
           ],
@@ -223,10 +223,24 @@ Future<void> _confirmUnbindDevice() async {
         title: const Text('Alpha Super 2026'),
         actions: [
           IconButton(
+            tooltip: 'أدوات Alpha Super الذكية',
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProToolsScreen(
+                  allQs: allQs,
+                  activeBranch: widget.activeBranch,
+                  curriculum: syrianCurriculum2026,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
             tooltip: 'فك ربط الجهاز / نقل الحساب',
             icon: unbinding
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.phonelink_erase, color: Colors.redAccent),
+                : const Icon(Icons.phonelink_erase),
             onPressed: unbinding ? null : _confirmUnbindDevice,
           ),
           IconButton(
@@ -254,11 +268,13 @@ Future<void> _confirmUnbindDevice() async {
             child: ListTile(
               leading: Icon(unlocked ? Icons.lock_open : Icons.lock, color: unlocked ? Colors.green : Colors.grey),
               title: Text(stage, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(unlocked ? 'مفعّل بالكامل' : 'مقفل (يتطلب كود هذا الفرع)'),
+              subtitle: Text(unlocked ? 'مفعّل بالكامل' : 'مقفل - يتطلب كود هذا الفرع'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 if (!unlocked) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذا القسم مقفل حسب كود التفعيل الخاص بك')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('هذا القسم غير مفعّل لكودك الحالي!')),
+                  );
                   return;
                 }
                 Navigator.push(
