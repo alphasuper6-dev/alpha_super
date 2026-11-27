@@ -42,21 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _syncCloud() async {
     setState(() => syncing = true);
     try {
+      final p = await SharedPreferences.getInstance();
+      final savedToken = p.getString('gh_admin_token') ?? kToken;
       final url = Uri.parse(
         'https://github.com{DateTime.now().millisecondsSinceEpoch}',
       );
       final res = await http.get(
         url,
         headers: {
-          if (kToken.isNotEmpty) 'Authorization': 'Bearer $kToken',
+          if (savedToken.isNotEmpty) 'Authorization': 'Bearer $savedToken',
           'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'AlphaSuperApp',
         },
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final cleanBase64 = data['content'].toString().replaceAll('\n', '');
         final raw = utf8.decode(base64Decode(cleanBase64));
-        final p = await SharedPreferences.getInstance();
         await p.setString('offline_questions', raw);
         setState(() => allQs = jsonDecode(raw));
         if (mounted) {
@@ -70,12 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         throw Exception('HTTP ${res.statusCode}');
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تعذر التحديث السحابي'),
+          SnackBar(
+            content: Text('تعذر التحديث السحابي: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 7),
           ),
         );
       }
@@ -136,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => AdminPanelScreen()),
+                  MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
                 );
               },
             ),
@@ -222,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-          );          
+          );
         },
       ),
     );
