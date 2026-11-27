@@ -279,4 +279,19 @@ class GeometryShapePainter extends CustomPainter {
       final left = Offset(w * 0.2, h * 0.8);
       final right = Offset(w * 0.8, h * 0.8);
       canvas.drawLine(top, left, paint);
-      
+          canvas.drawLine(top, right, paint);
+      final ovalRect = Rect.fromCenter(center: Offset(w * 0.5, h * 0.8), width: w * 0.6, height: h * 0.18);
+      canvas.drawOval(ovalRect, paint);
+      canvas.drawLine(top, Offset(w * 0.5, h * 0.8), dashedPaint);
+      _drawLabel(canvas, 'S', Offset(w * 0.48, h * 0.0));
+      _drawLabel(canvas, 'O', Offset(w * 0.44, h * 0.76));
+      _drawLabel(canvas, 'h', Offset(w * 0.52, h * 0.45));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant GeometryShapePainter oldDelegate) {
+    return oldDelegate.shape != shape;
+  }
+}
+  
