@@ -4,59 +4,14 @@
     "branch": "SCI",
     "subject": "الرياضيات",
     "unit": "الوحدة الأولى",
-    "question": "حمزة شو",
+    "question": "ما هو مشتق الدالة f(x) = x^2 ؟",
     "options": [
-      "حلو",
-      "حقير",
-      "عصبي",
-      "كلب"
+      "2x",
+      "x",
+      "x^2",
+      "2"
     ],
     "correctIndex": 0,
-    "explanation": "كلب"
-  },
-  {
-    "id": "1795761301459",
-    "branch": "SCI",
-    "subject": "الرياضيات",
-    "unit": "الوحدة الأولى",
-    "question": "حمزه شو؟",
-    "options": [
-      "كلب",
-      "لعين",
-      "حقيؤ",
-      "كل ما سبق 😂"
-    ],
-    "correctIndex": 3,
-    "explanation": "كل ما سبق 😂"
-  },
-  {
-    "id": "1795762239771",
-    "branch": "T9",
-    "subject": "الرياضيات",
-    "unit": "الوحدة الأولى",
-    "question": "حمزة شو ؟",
-    "options": [
-      "كلب",
-      "حقير",
-      "لعين",
-      "كل ما سبق 😂"
-    ],
-    "correctIndex": 3,
-    "explanation": "🤣🤣"
-  },
-  {
-    "id": "1795768042602",
-    "branch": "SCI",
-    "subject": "الرياضيات",
-    "unit": "الوحدة الأولى",
-    "question": "حمزة شو ؟",
-    "options": [
-      "كلب",
-      "حقير",
-      "لعين",
-      "كل ما سبق 😂"
-    ],
-    "correctIndex": 3,
-    "explanation": ""
+    "explanation": "مشتق القوة x^n هو n*x^(n-1)"
   }
 ]
