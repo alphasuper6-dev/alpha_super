@@ -105,7 +105,9 @@ class _QuestionCardWidgetState extends State<QuestionCardWidget> {
     final List<dynamic> options = q['options'] ?? [];
     final String shape = (q['shape'] ?? '').toString().trim().toLowerCase();
     final String imageUrl = (q['image'] ?? '').toString().trim();
-    final String correctAnswer = (q['answer'] ?? '').toString();
+    final int cIdx = (q['correctIndex'] is int) ? q['correctIndex'] : -1;
+final String correctAnswer = (q['answer'] ?? (cIdx >= 0 && cIdx < options.length ? options[cIdx] : '')).toString();
+    
     final String explanation = (q['explanation'] ?? '').toString();
 
     return Card(
