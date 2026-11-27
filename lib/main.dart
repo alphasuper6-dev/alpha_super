@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'app_screens.dart';
 
+final Uri kCodesUri = Uri.https('api.' + 'github.com', '/repos/alphasuper6-dev/alpha_super/contents/codes.json');
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const AlphaSuperApp());
@@ -70,6 +72,7 @@ class ActivationScreen extends StatefulWidget {
 class _ActivationScreenState extends State<ActivationScreen> {
   final _c = TextEditingController();
   String _err = "";
+  String _msg = "";
   bool _loading = false;
 
   Future<void> _verify() async {
@@ -86,12 +89,12 @@ class _ActivationScreenState extends State<ActivationScreen> {
     setState(() {
       _loading = true;
       _err = "";
+      _msg = "";
     });
-    const url = 'https://github.com';
 
     try {
       final res = await http.get(
-        Uri.parse(url),
+        kCodesUri,
         headers: {'Authorization': 'Bearer $kToken', 'Accept': 'application/vnd.github.v3+json'},
       );
       final data = jsonDecode(res.body);
@@ -119,7 +122,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
 
       codes[code] = {"status": "used", "device_id": widget.devId, "branch": branch};
       await http.put(
-        Uri.parse(url),
+        kCodesUri,
         headers: {
           'Authorization': 'Bearer $kToken',
           'Accept': 'application/vnd.github.v3+json',
@@ -134,7 +137,81 @@ class _ActivationScreenState extends State<ActivationScreen> {
 
       final p = await SharedPreferences.getInstance();
       await p.setString('active_branch', branch);
+      await p.setString('active_code', code);
       widget.onDone(branch);
+    } catch (_) {
+      setState(() => _err = "تأكد من الاتصال بالإنترنت وحاول مجدداً");
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _unbindCode() async {
+    final code = _c.text.trim().toUpperCase();
+    if (code.isEmpty) {
+      setState(() => _err = "أدخل الكود الأساسي أولاً لفك ربطه ونقله");
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _err = "";
+      _msg = "";
+    });
+
+    try {
+      final res = await http.get(
+        kCodesUri,
+        headers: {'Authorization': 'Bearer $kToken', 'Accept': 'application/vnd.github.v3+json'},
+      );
+      final data = jsonDecode(res.body);
+      final sha = data['sha'];
+      Map<String, dynamic> codes = jsonDecode(
+        utf8.decode(base64Decode(data['content'].toString().replaceAll('\n', ''))),
+      );
+
+      if (!codes.containsKey(code)) {
+        setState(() => _err = "الكود غير موجود!");
+        return;
+      }
+
+      final info = codes[code];
+      final savedDev = (info is Map) ? (info['device_id']?.toString() ?? "") : "";
+
+      if (savedDev.isEmpty) {
+        setState(() => _err = "هذا الكود غير مربوط بأي جهاز أصلاً!");
+        return;
+      }
+
+      if (savedDev != widget.devId) {
+        setState(() => _err = "لا يمكن فك الربط إلا من الجهاز الأساسي المفعل عليه الكود!");
+        return;
+      }
+
+      String branch = (info is Map && info['branch'] != null) ? info['branch'] : "ALL";
+      codes[code] = {"status": "unused", "device_id": "", "branch": branch};
+
+      await http.put(
+        kCodesUri,
+        headers: {
+          'Authorization': 'Bearer $kToken',
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'message': 'فك ربط كود $code للنقل',
+          'content': base64Encode(utf8.encode(jsonEncode(codes))),
+          'sha': sha,
+        }),
+      );
+
+      final p = await SharedPreferences.getInstance();
+      await p.remove('active_branch');
+      await p.remove('active_code');
+
+      setState(() {
+        _msg = "تم فك ربط الكود عن هذا الجهاز بنجاح! يمكنك الآن تفعيله على جهازك الجديد.";
+      });
     } catch (_) {
       setState(() => _err = "تأكد من الاتصال بالإنترنت وحاول مجدداً");
     } finally {
@@ -158,20 +235,39 @@ class _ActivationScreenState extends State<ActivationScreen> {
             const SizedBox(height: 20),
             TextField(
               controller: _c,
-              decoration: const InputDecoration(labelText: "أدخل كود التفعيل (T9 / SC / LT)", border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: "أدخل كود التفعيل (T9 / SC / LT)",
+                border: OutlineInputBorder(),
+              ),
             ),
             if (_err.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(_err, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               ),
+            if (_msg.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_msg, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+              ),
             const SizedBox(height: 16),
             _loading
                 ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _verify,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-                    child: const Text("تفعيل التطبيق"),
+                : Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: _verify,
+                        style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+                        child: const Text("تفعيل التطبيق"),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _unbindCode,
+                        icon: const Icon(Icons.phonelink_erase, color: Colors.orange),
+                        label: const Text("فك ربط الكود (لنقل الحساب لجهاز جديد)"),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+                      ),
+                    ],
                   ),
           ],
         ),
