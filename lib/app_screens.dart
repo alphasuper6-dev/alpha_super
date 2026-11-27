@@ -1,4 +1,88 @@
-  Future<void> _confirmUnbindDevice() async {
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'curriculum.dart';
+import 'admin_screen.dart';
+import 'code_generator_screen.dart';
+import 'study_views.dart';
+import 'main.dart';
+
+const String kOwner = 'alphasuper6-dev';
+const String kRepo = 'alpha_super';
+
+class HomeScreen extends StatefulWidget {
+  final String devId;
+  final String activeBranch;
+  const HomeScreen({super.key, required this.devId, required this.activeBranch});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<dynamic> allQs = [];
+  bool syncing = false;
+  bool unbinding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOffline();
+    _syncCloud();
+  }
+
+  Future<void> _loadOffline() async {
+    final p = await SharedPreferences.getInstance();
+    final s = p.getString('offline_questions');
+    if (s != null && s.isNotEmpty) {
+      setState(() => allQs = jsonDecode(s));
+    }
+  }
+
+  Future<void> _syncCloud() async {
+    setState(() => syncing = true);
+    try {
+      final p = await SharedPreferences.getInstance();
+      final host = ['api', 'github', 'com'].join('.');
+      final file = ['questions', 'json'].join('.');
+      final ts = DateTime.now().millisecondsSinceEpoch.toString();
+      final url = Uri.parse(
+        'https://$host/repos/$kOwner/$kRepo/contents/$file?ref=main&t=$ts',
+      );
+      final res = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'AlphaSuperApp',
+        },
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final cleanBase64 = data['content'].toString().replaceAll(RegExp(r'\s+'), '');
+        final raw = utf8.decode(base64Decode(cleanBase64));
+        await p.setString('offline_questions', raw);
+        setState(() => allQs = jsonDecode(raw));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم تحديث الأسئلة بنجاح!'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        throw Exception('HTTP ${res.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تعذر التحديث: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => syncing = false);
+    }
+  }
+  
+Future<void> _confirmUnbindDevice() async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
