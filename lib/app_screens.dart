@@ -136,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AdminScreen()),
+                  MaterialPageRoute(builder: (_) => AdminScreen()),
                 );
               },
             ),
@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const CodeGeneratorScreen()),
+                  MaterialPageRoute(builder: (_) => CodeGeneratorScreen()),
                 );
               },
             ),
@@ -215,13 +215,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(
                     builder: (_) => SubjectsScreen(
                       stageName: stage,
-                      allQuestions: allQs,
+                      subjectsMap: syrianCurriculum2026[stage]!,
+                      allQs: allQs,
                     ),
                   ),
                 );
               },
             ),
-          );
+          );          
         },
       ),
     );
