@@ -13,5 +13,20 @@
     ],
     "correctIndex": 0,
     "explanation": "كلب"
+  },
+  {
+    "id": "1795761301459",
+    "branch": "SCI",
+    "subject": "الرياضيات",
+    "unit": "الوحدة الأولى",
+    "question": "حمزه شو؟",
+    "options": [
+      "كلب",
+      "لعين",
+      "حقيؤ",
+      "كل ما سبق 😂"
+    ],
+    "correctIndex": 3,
+    "explanation": "كل ما سبق 😂"
   }
 ]
