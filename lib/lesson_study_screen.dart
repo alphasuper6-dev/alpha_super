@@ -182,7 +182,8 @@ class _QuestionCardWidgetState extends State<QuestionCardWidget> {
     final opts = q['options'] ?? [];
     final shape = (q['shape'] ?? '').toString().trim().toLowerCase();
            final rawImg = (q['image'] ?? '').toString().trim();
-    final img = rawImg.isEmpty ? '' : Uri.encodeFull(rawImg.startsWith('http') ? rawImg : 'https://jsdelivr.net');
+        final img = rawImg.isEmpty ? '' : Uri.encodeFull(rawImg.startsWith('http') ? rawImg : ('https://' + 'cdn.jsdelivr.net/gh/alphasuper6-dev/alpha_super@main/image/' + rawImg));
+    
     
     final exp = (q['explanation'] ?? '').toString();
     final activeSel = widget.isExam ? widget.selected : localSel;
